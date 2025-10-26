@@ -1,0 +1,81 @@
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado de Caja | Administración</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="contenedor-principal">
+        <header class="barra-superior">
+            <nav>
+                <a href="index.html">ADMINISTRACIÓN</a>
+                <a href="inventario.html">Inventario</a>
+                <a href="ventas.html">Ventas</a>
+                <a href="servicios.html">Servicios</a>
+                <a href="caja.html">Estado de caja</a>
+                <a href="facturas.html">Facturas</a>
+            </nav>
+        </header>
+
+        <div class="contenido-flex">
+            <aside class="barra-lateral">
+                <div class="perfil">
+                    <div class="icono-perfil"></div>
+                    <p class="nombre-usuario">luishck</p>
+                </div>
+
+                <div class="seccion-formulario">
+                    <h3>CONTROL DE CAJA</h3>
+                    <label for="fecha-corte">Seleccionar Fecha:</label>
+                    <input type="date" id="fecha-corte" value="2025-10-25">
+                    <button class="btn-listo">Cerrar Caja del Día</button>
+                    <button class="btn-accion btn-cancelar" style="margin-top: 10px; width: 100%;">Ingresar Gasto</button>
+                </div>
+            </aside>
+
+            <main class="seccion-caja">
+                <div class="cabecera-caja">
+                    <h2>Estado de Caja - Hoy (25/10/2025)</h2>
+                </div>
+
+                <div class="paneles-resumen tpv-grid">
+                    <div class="panel-caja tpv-col-derecha">
+                        <h3>Ventas Totales</h3>
+                        <p class="valor-total">$ 1.520,00</p>
+                    </div>
+                    <div class="panel-caja tpv-col-derecha">
+                        <h3>Total Gastos</h3>
+                        <p class="valor-gastos">$ 35,00</p>
+                    </div>
+                    <div class="panel-caja tpv-col-derecha">
+                        <h3>Saldo Neto</h3>
+                        <p class="valor-neto">$ 1.485,00</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Movimientos de la Caja</h3>
+                <table class="tabla-inventario">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Método</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr> <td>10:30</td> <td>Venta</td> <td>Venta #0045</td> <td>Efectivo</td> <td>+ $ 313,20</td> </tr>
+                        <tr> <td>11:45</td> <td>Gasto</td> <td>Compra de papel de oficina</td> <td>Efectivo</td> <td>- $ 35,00</td> </tr>
+                        <tr> <td>13:00</td> <td>Venta</td> <td>Venta #0046</td> <td>Tarjeta</td> <td>+ $ 500,00</td> </tr>
+                    </tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

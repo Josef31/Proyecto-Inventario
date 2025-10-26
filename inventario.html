@@ -1,0 +1,77 @@
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario | Administración</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="contenedor-principal">
+        <header class="barra-superior">
+            <nav>
+                <a href="index.html">ADMINISTRACIÓN</a>
+                <a href="inventario.html">Inventario</a>
+                <a href="ventas.html">Ventas</a>
+                <a href="servicios.html">Servicios</a>
+                <a href="caja.html">Estado de caja</a>
+                <a href="factura.html">Facturas</a>
+            </nav>
+        </header>
+
+        <div class="contenido-flex">
+            <aside class="barra-lateral">
+                <div class="perfil">
+                    <div class="icono-perfil"></div>
+                    <p class="nombre-usuario">luishck</p>
+                </div>
+
+                <div class="seccion-formulario">
+                    <h3>NUEVO ARTÍCULO</h3>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre">
+                    <label for="descripcion">Descripción:</label>
+                    <input type="text" id="descripcion">
+                    <label for="precio-compra">Precio compra:</label>
+                    <input type="text" id="precio-compra">
+                    <label for="precio-venta">Precio venta:</label>
+                    <input type="text" id="precio-venta">
+                    <button class="btn-listo">Listo</button>
+                </div>
+            </aside>
+
+            <main class="seccion-inventario">
+                <div class="cabecera-inventario">
+                    <h2>Articulos en el Inventario</h2>
+                    <div class="alerta-exito">
+                        <span class="icono-ayuda">✓</span>
+                        <p>Se creó el artículo con éxito</p>
+                    </div>
+                    <p class="total-invertido">Total invertido en inventario: 2820,00</p>
+                </div>
+
+                <table class="tabla-inventario">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Existencias</th>
+                            <th>Mínimo Existencias</th>
+                            <th>Precio de Venta</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr> <td>53</td> <td>Tu artículo</td> <td><span class="stock-agotado">0</span></td> <td>0</td> <td>15,50</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
+                        <tr> <td>4</td> <td>Cartulina</td> <td><span class="stock-agotado">0</span></td> <td>1</td> <td>200,00</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
+                        <tr> <td>3</td> <td>Palas</td> <td>10</td> <td>1</td> <td>250,00</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
+                        <tr> <td>2</td> <td>Papel opalina</td> <td>32</td> <td>1</td> <td>10,00</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
+                    </tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

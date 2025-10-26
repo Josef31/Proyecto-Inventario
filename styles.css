@@ -1,0 +1,454 @@
+
+
+/* Reset Básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Contenedor Principal (para la altura total) */
+.contenedor-principal {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Barra Superior --- */
+.barra-superior {
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.barra-superior nav a {
+    text-decoration: none;
+    color: #333;
+    margin-right: 20px;
+    font-weight: bold;
+    padding: 5px 0;
+}
+
+.barra-superior nav a[href$=".html"]:hover { /* Estilo para los enlaces de módulo */
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+
+/* --- Contenido Flexible (Barra lateral + Contenido) --- */
+.contenido-flex {
+    display: flex;
+    flex-grow: 1;
+}
+
+/* --- Barra Lateral --- */
+.barra-lateral {
+    width: 280px;
+    background-color: #34495e;
+    color: white;
+    padding: 20px 15px;
+    flex-shrink: 0;
+}
+
+.perfil {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.icono-perfil {
+    width: 80px;
+    height: 80px;
+    background-color: #2c3e50;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    border: 2px solid white;
+}
+
+.nombre-usuario {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.seccion-formulario h3 {
+    font-size: 1.1em;
+    padding: 10px;
+    background-color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.seccion-formulario label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.seccion-formulario input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 3px;
+    color: #333; /* Color de texto en el input */
+}
+
+.btn-listo {
+    width: 100%;
+    padding: 10px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* --- Estilos Generales para las Secciones Principales --- */
+
+.seccion-bienvenida, .seccion-inventario, .seccion-ventas {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* --- ESTILOS ESPECÍFICOS DEL INVENTARIO (inventario.html) --- */
+
+.cabecera-inventario {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.cabecera-inventario h2 {
+    font-size: 1.5em;
+    color: #333;
+}
+
+.total-invertido {
+    position: absolute;
+    top: 5px;
+    right: 250px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.alerta-exito {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #2ecc71;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.alerta-exito .icono-ayuda {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0 5px;
+    margin-right: 8px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.alerta-exito p {
+    margin: 0;
+    font-weight: normal;
+}
+
+.tabla-inventario {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.tabla-inventario th {
+    background-color: #f8f8f8;
+    color: #666;
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 2px solid #ddd;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.tabla-inventario td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-inventario tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.stock-agotado {
+    font-weight: bold;
+    color: #e74c3c; /* Resaltar stock en rojo */
+}
+
+.acciones .btn-detalles, .acciones .btn-eliminar {
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 0.9em;
+}
+
+.acciones .btn-detalles {
+    background-color: #3498db;
+    color: white;
+    border: 1px solid #3498db;
+}
+
+.acciones .btn-eliminar {
+    background-color: white;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+
+/* --- ESTILOS ESPECÍFICOS DEL TPV/VENTAS (ventas.html) --- */
+
+.cabecera-ventas h2 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.tpv-grid {
+    display: flex;
+    gap: 20px;
+}
+
+.tpv-col-izquierda {
+    flex-basis: 70%;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tpv-col-derecha {
+    flex-basis: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.buscador-productos {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.buscador-productos input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.btn-buscar {
+    padding: 10px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.lista-carrito h3 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.tabla-carrito {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-carrito th, .tabla-carrito td {
+    padding: 10px 0;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-carrito th {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.btn-quitar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 3px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.resumen-pago, .opciones-pago {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detalle-pago {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #eee;
+}
+
+.total-final {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #34495e;
+    border-top: 2px solid #34495e;
+    padding-top: 10px;
+    margin-top: 15px;
+}
+
+.valor-total {
+    color: #e74c3c;
+}
+
+.opciones-pago h4 {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.opciones-pago select, .opciones-pago input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.botones-acciones-tpv {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-accion {
+    padding: 15px 0;
+    border: none;
+    border-radius: 3px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cobrar {
+    background-color: #2ecc71;
+    color: white;
+    font-size: 1.1em;
+}
+
+.btn-cancelar {
+    background-color: #95a5a6;
+    color: white;
+}
+
+
+/* Estilos para el Módulo de Servicios */
+.seccion-servicios .cabecera-servicios {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.total-servicios {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Estilos para el Módulo de Caja */
+
+.seccion-caja .cabecera-caja h2 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.paneles-resumen {
+    display: flex;
+    gap: 20px;
+}
+
+.panel-caja {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    flex-grow: 1;
+}
+
+.panel-caja h3 {
+    color: #34495e;
+    margin-bottom: 10px;
+}
+
+.valor-total {
+    color: #2ecc71; /* Verde para ingresos/Ventas */
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.valor-gastos {
+    color: #e74c3c; /* Rojo para gastos */
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.valor-neto {
+    color: #3498db; /* Azul para el neto */
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+
+/* Estilos para el Módulo de Facturas */
+.seccion-facturas .cabecera-facturas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Estilos de Estado en la tabla de facturas */
+.estado-pagado {
+    background-color: #2ecc71;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.estado-pendiente {
+    background-color: #f39c12; /* Naranja/Amarillo */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
