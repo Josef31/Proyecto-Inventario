@@ -5,46 +5,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturas | Administración</title>
+    <title>Facturas | Sistema de Administración</title>
     <link rel="stylesheet" href="styles.css">
-</head>
+    </head>
 <body>
     <div class="contenedor-principal">
+        
         <header class="barra-superior">
             <nav>
                 <a href="index.html">ADMINISTRACIÓN</a>
-                <a href="inventario.html">Inventario</a>
+                <a href="index.html">Inventario</a>
                 <a href="ventas.html">Ventas</a>
                 <a href="servicios.html">Servicios</a>
-                <a href="caja.html">Estado de caja</a>
-                <a href="facturas.html">Facturas</a>
-            </nav>
+                <a href="caja.html">Estado de caja</a> 
+                <a href="factura.html">Facturas</a> </nav>
         </header>
 
         <div class="contenido-flex">
+            
             <aside class="barra-lateral">
                 <div class="perfil">
                     <div class="icono-perfil"></div>
                     <p class="nombre-usuario">luishck</p>
+                    <p class="rol-usuario">Administrador</p>
                 </div>
-
+                
                 <div class="seccion-formulario">
-                    <h3>BUSCAR FACTURA</h3>
-                    <label for="num-factura">Número de Factura:</label>
-                    <input type="text" id="num-factura" placeholder="#0000">
-                    <label for="fecha-inicio">Fecha Inicial:</label>
-                    <input type="date" id="fecha-inicio">
-                    <label for="fecha-fin">Fecha Final:</label>
-                    <input type="date" id="fecha-fin">
-                    <button class="btn-listo">Buscar</button>
-                    <button class="btn-accion btn-cancelar" style="margin-top: 10px; width: 100%;">Generar Reporte</button>
+                    <h3>Generación de Documentos</h3>
+                    <p>Las facturas se generan automáticamente al finalizar una venta en el TPV.</p>
+                    <hr>
+                    <p>Total de documentos registrados: <strong id="total-facturas">0</strong></p>
+                    <button class="btn-detalles" onclick="window.location.href='ventas.html'">Ir a TPV para facturar</button>
                 </div>
             </aside>
 
-            <main class="seccion-facturas">
-                <div class="cabecera-facturas">
-                    <h2>Historial de Facturas Emitidas</h2>
-                    <p class="total-servicios">Mostrando 50 resultados</p>
+            <main class="seccion-inventario"> 
+                <div class="cabecera-inventario">
+                    <h2>Historial de Facturas (Recibos de Venta)</h2>
+                    <p class="total-invertido">Utiliza el botón **"Ver"** para consultar el detalle de la venta.</p>
                 </div>
 
                 <table class="tabla-inventario">
@@ -52,20 +50,19 @@
                         <tr>
                             <th># Factura</th>
                             <th>Fecha</th>
-                            <th>Cliente</th>
+                            <th># Ítems</th>
+                            <th>Método de Pago</th>
                             <th>Total</th>
-                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr> <td>#0046</td> <td>25/10/2025</td> <td>Cliente Genérico 1</td> <td>$ 500,00</td> <td><span class="estado-pagado">Pagada</span></td> <td class="acciones"> <button class="btn-detalles">Ver PDF</button> <button class="btn-eliminar">Anular</button> </td> </tr>
-                        <tr> <td>#0045</td> <td>25/10/2025</td> <td>Cliente Genérico 2</td> <td>$ 313,20</td> <td><span class="estado-pagado">Pagada</span></td> <td class="acciones"> <button class="btn-detalles">Ver PDF</button> <button class="btn-eliminar">Anular</button> </td> </tr>
-                        <tr> <td>#0044</td> <td>24/10/2025</td> <td>Empresa XYZ</td> <td>$ 1.200,00</td> <td><span class="estado-pendiente">Pendiente</span></td> <td class="acciones"> <button class="btn-detalles">Ver PDF</button> <button class="btn-eliminar">Anular</button> </td> </tr>
-                    </tbody>
+                    <tbody id="tabla-cuerpo-facturas">
+                        </tbody>
                 </table>
             </main>
         </div>
     </div>
+    
+    <script src="scripts.js"></script>
 </body>
 </html>
