@@ -5,15 +5,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ventas | Administración</title>
+    <title>Ventas | Sistema de Administración</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="contenedor-principal">
+        
         <header class="barra-superior">
             <nav>
                 <a href="index.html">ADMINISTRACIÓN</a>
-                <a href="inventario.html">Inventario</a>
+                <a href="index.html">Inventario</a>
                 <a href="ventas.html">Ventas</a>
                 <a href="servicios.html">Servicios</a>
                 <a href="caja.html">Estado de caja</a>
@@ -22,28 +23,36 @@
         </header>
 
         <div class="contenido-flex">
+            
             <aside class="barra-lateral">
                 <div class="perfil">
                     <div class="icono-perfil"></div>
                     <p class="nombre-usuario">luishck</p>
+                    <p class="rol-usuario">Administrador</p>
                 </div>
                 <div class="seccion-formulario">
-                    <h3>INFORMACIÓN EXTRA</h3>
-                    <p>Aquí podría ir información del cliente o un resumen rápido del día.</p>
+                    <h3>DETALLES DE CLIENTE</h3>
+                    <input type="text" id="cliente-nombre" placeholder="Nombre del Cliente">
+                    <input type="text" id="cliente-rfc" placeholder="RFC/Identificación">
+                    <button class="btn-listo">Asignar Cliente</button>
                 </div>
             </aside>
 
             <main class="seccion-ventas">
                 <div class="cabecera-ventas">
-                    <h2>Punto de Venta</h2>
+                    <h2>Punto de Venta (TPV)</h2>
                 </div>
 
                 <div class="tpv-grid">
                     <div class="tpv-col-izquierda">
+                        
                         <div class="buscador-productos">
-                            <input type="text" placeholder="Buscar producto por nombre o código...">
-                            <button class="btn-buscar">Buscar</button>
+                            <input type="text" id="input-busqueda" placeholder="Buscar producto por nombre o código...">
+                            <button class="btn-buscar" onclick="buscarProducto()">Buscar</button>
                         </div>
+                        
+                        <div id="resultado-busqueda" class="lista-resultados">
+                            </div>
 
                         <div class="lista-carrito">
                             <h3>Detalle de la Venta (Carrito)</h3>
@@ -57,41 +66,44 @@
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr> <td>Palas</td> <td>1</td> <td>250,00</td> <td>250,00</td> <td><button class="btn-quitar">X</button></td> </tr>
-                                    <tr> <td>Papel opalina</td> <td>2</td> <td>10,00</td> <td>20,00</td> <td><button class="btn-quitar">X</button></td> </tr>
-                                </tbody>
+                                <tbody id="cuerpo-carrito">
+                                    </tbody>
                             </table>
                         </div>
                     </div>
 
                     <div class="tpv-col-derecha">
+                        
                         <div class="resumen-pago">
-                            <div class="detalle-pago"> <p>Subtotal:</p> <p>270,00</p> </div>
-                            <div class="detalle-pago"> <p>Impuestos (IVA 16%):</p> <p>43,20</p> </div>
+                            <div class="detalle-pago"> <p>Subtotal:</p> <p id="total-subtotal">0.00</p> </div>
+                            <div class="detalle-pago"> <p>Impuestos (IVA 16%):</p> <p id="total-impuestos">0.00</p> </div>
                             <div class="detalle-pago total-final">
                                 <p>TOTAL A PAGAR:</p>
-                                <p class="valor-total">313,20</p>
+                                <p class="valor-total" id="total-pagar">0.00</p>
                             </div>
                         </div>
 
                         <div class="opciones-pago">
                             <h4>Método de Pago</h4>
-                            <select>
-                                <option>Efectivo</option>
-                                <option>Tarjeta de Crédito/Débito</option>
+                            <select id="metodo-pago">
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
                             </select>
-                            <input type="text" placeholder="Monto Recibido">
+                            <input type="number" id="monto-recibido" placeholder="Monto Recibido" min="0" step="0.01">
+                            
+                            <div class="detalle-pago"> <p>Su Cambio:</p> <p id="monto-cambio">0.00</p> </div>
                         </div>
 
                         <div class="botones-acciones-tpv">
-                            <button class="btn-accion btn-cobrar">COBRAR VENTA</button>
-                            <button class="btn-accion btn-cancelar">CANCELAR</button>
+                            <button class="btn-accion btn-cobrar" onclick="finalizarVenta()">COBRAR VENTA</button>
+                            <button class="btn-accion btn-cancelar" onclick="cancelarVenta()">CANCELAR</button>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
+    
+    <script src="scripts.js"></script>
 </body>
 </html>
