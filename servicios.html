@@ -5,67 +5,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servicios | Administración</title>
+    <title>Servicios | Sistema de Administración</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="contenedor-principal">
+        
         <header class="barra-superior">
             <nav>
                 <a href="index.html">ADMINISTRACIÓN</a>
-                <a href="inventario.html">Inventario</a>
+                <a href="index.html">Inventario</a>
                 <a href="ventas.html">Ventas</a>
-                <a href="servicios.html">Servicios</a>
+                <a href="servicios.html">Servicios</a> 
                 <a href="caja.html">Estado de caja</a>
-                <a href="facturas.html">Facturas</a>
+                <a href="factura.html">Facturas</a>
             </nav>
         </header>
 
         <div class="contenido-flex">
+            
             <aside class="barra-lateral">
                 <div class="perfil">
                     <div class="icono-perfil"></div>
                     <p class="nombre-usuario">luishck</p>
+                    <p class="rol-usuario">Administrador</p>
                 </div>
 
                 <div class="seccion-formulario">
                     <h3>NUEVO SERVICIO</h3>
-                    <label for="nombre-servicio">Nombre:</label>
+                    
+                    <label for="nombre-servicio">Nombre del Servicio:</label>
                     <input type="text" id="nombre-servicio">
-                    <label for="costo-base">Costo Base:</label>
-                    <input type="text" id="costo-base" placeholder="0.00">
-                    <label for="tarifa">Tarifa al Cliente:</label>
-                    <input type="text" id="tarifa" placeholder="0.00">
-                    <label for="duracion">Duración (minutos):</label>
-                    <input type="number" id="duracion">
-                    <button class="btn-listo">Guardar Servicio</button>
+                    
+                    <label for="costo-base">Costo Base (Materiales/Hora):</label>
+                    <input type="number" id="costo-base" min="0" step="0.01">
+                    
+                    <label for="tarifa-cliente">Tarifa al Cliente:</label>
+                    <input type="number" id="tarifa-cliente" min="0" step="0.01">
+
+                    <label for="duracion-estimada">Duración Estimada (minutos):</label>
+                    <input type="number" id="duracion-estimada" min="1">
+                    
+                    <button class="btn-listo" onclick="agregarServicio()">Guardar Servicio</button>
+                </div>
+
+                <div class="seccion-acciones-admin">
+                    <h3>REPORTES</h3>
+                    <button class="btn-admin-accion btn-reporte-servicios">Generar Reporte de Servicios</button>
                 </div>
             </aside>
 
-            <main class="seccion-servicios">
-                <div class="cabecera-servicios">
+            <main class="seccion-servicios seccion-inventario"> <div class="cabecera-inventario">
                     <h2>Servicios Disponibles</h2>
-                    <p class="total-servicios">Total de Servicios Activos: 5</p>
+                    <p class="total-invertido">Total de Servicios: <span id="total-servicios">0</span></p>
                 </div>
 
-                <table class="tabla-inventario"> <thead>
+                <table class="tabla-inventario">
+                    <thead>
                         <tr>
                             <th>#</th>
                             <th>Nombre del Servicio</th>
                             <th>Costo Base</th>
-                            <th>Tarifa</th>
-                            <th>Duración Estimada</th>
+                            <th>Tarifa Cliente</th>
+                            <th>Duración (min)</th>
+                            <th>Ganancia Estimada</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr> <td>101</td> <td>Asesoría Técnica</td> <td>25,00</td> <td>50,00</td> <td>60 min</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
-                        <tr> <td>102</td> <td>Mantenimiento Básico</td> <td>50,00</td> <td>120,00</td> <td>90 min</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
-                        <tr> <td>103</td> <td>Instalación de Software</td> <td>10,00</td> <td>30,00</td> <td>30 min</td> <td class="acciones"> <button class="btn-detalles">Detalles</button> <button class="btn-eliminar">Eliminar</button> </td> </tr>
-                    </tbody>
+                    <tbody id="tabla-cuerpo-servicios">
+                        </tbody>
                 </table>
             </main>
         </div>
     </div>
+    
+    <script src="scripts.js"></script>
 </body>
 </html>
