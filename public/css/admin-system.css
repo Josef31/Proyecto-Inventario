@@ -1,0 +1,590 @@
+/* ============================================================================== */
+/* 1. RESET Y ESTRUCTURA BASE */
+/* ============================================================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+}
+
+.contenedor-principal {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ============================================================================== */
+/* 2. BARRA SUPERIOR */
+/* ============================================================================== */
+.barra-superior {
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.barra-superior nav a {
+    text-decoration: none;
+    color: #333;
+    margin-right: 20px;
+    font-weight: bold;
+    padding: 5px 0;
+}
+
+.barra-superior nav a:hover {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+.barra-superior nav button {
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: inherit;
+    margin-right: 20px;
+    padding: 5px 0;
+}
+
+.barra-superior nav button:hover {
+    color: #e74c3c;
+    border-bottom: 2px solid #e74c3c;
+}
+
+/* ============================================================================== */
+/* 3. BARRA LATERAL (ASIDE) Y FORMULARIO */
+/* ============================================================================== */
+.contenido-flex {
+    display: flex;
+    flex-grow: 1;
+}
+
+.barra-lateral {
+    width: 280px;
+    background-color: #34495e;
+    color: white;
+    padding: 20px 15px;
+    flex-shrink: 0;
+}
+
+.perfil {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.icono-perfil {
+    width: 80px;
+    height: 80px;
+    background-color: #2c3e50;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    border: 2px solid white;
+}
+
+.nombre-usuario {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.rol-usuario {
+    font-size: 0.9em;
+    color: #2ecc71;
+    font-weight: bold;
+    margin-top: 5px;
+    padding: 3px 5px;
+    background-color: #2c3e50;
+    border-radius: 3px;
+}
+
+.seccion-formulario h3 {
+    font-size: 1.1em;
+    padding: 10px;
+    background-color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.seccion-formulario label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.seccion-formulario input,
+.seccion-formulario select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 3px;
+    color: #333;
+}
+
+.btn-listo {
+    width: 100%;
+    padding: 10px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.btn-listo:hover {
+    background-color: #27ae60;
+}
+
+.seccion-acciones-admin {
+    padding-top: 20px;
+    border-top: 1px solid #4a6681;
+    margin-top: 20px;
+}
+
+.seccion-acciones-admin h3 {
+    font-size: 1.1em;
+    padding: 10px;
+    background-color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.btn-admin-accion {
+    width: 100%;
+    padding: 10px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.btn-admin-accion:hover {
+    background-color: #e67e22;
+}
+
+/* ============================================================================== */
+/* 4. SECCIÓN PRINCIPAL: CABECERA Y TABLA */
+/* ============================================================================== */
+.seccion-inventario {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.seccion-ventas {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.cabecera-inventario {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.cabecera-inventario h2 {
+    font-size: 1.5em;
+    color: #333;
+}
+
+.total-invertido {
+    position: absolute;
+    top: 5px;
+    right: 0;
+    font-size: 0.9em;
+    color: #333;
+    font-weight: bold;
+}
+
+.alerta-exito {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #2ecc71;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    z-index: 10;
+}
+
+.alerta-exito .icono-ayuda {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0 5px;
+    margin-right: 8px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* ============================================================================== */
+/* 5. TABLA DE INVENTARIO Y ESTILOS DE CUMPLIMIENTO */
+/* ============================================================================== */
+.tabla-inventario {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.tabla-inventario th {
+    background-color: #f8f8f8;
+    color: #666;
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 2px solid #ddd;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.tabla-inventario td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-inventario tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.alerta-vencimiento {
+    background-color: #fcebeb !important;
+}
+
+.alerta-stock {
+    background-color: #fff9e6 !important;
+}
+
+.stock-agotado {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.stock-bajo {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.vencimiento-cerca {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.acciones .btn-detalles {
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 0.9em;
+    background-color: #3498db;
+    color: white;
+    border: 1px solid #3498db;
+}
+
+.acciones .btn-detalles:hover {
+    background-color: #2980b9;
+}
+
+.acciones .btn-eliminar {
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+    background-color: white;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.acciones .btn-eliminar:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* ============================================================================== */
+/* 6. ESTILOS PARA VENTAS (TPV) */
+/* ============================================================================== */
+.tpv-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.tpv-col-izquierda {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tpv-col-derecha {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.buscador-productos {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.buscador-productos input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn-buscar {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-buscar:hover {
+    background-color: #2980b9;
+}
+
+.lista-resultados {
+    background-color: white;
+    border: 1px solid #ddd;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.resultado-item {
+    padding: 10px;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.resultado-item:hover {
+    background-color: #f0f8ff;
+}
+
+.resultado-item button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.resultado-item button:hover {
+    background-color: #2980b9;
+}
+
+.lista-carrito {
+    margin-top: 20px;
+}
+
+.tabla-carrito {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.tabla-carrito th {
+    background-color: #f8f8f8;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+.tabla-carrito td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.btn-quitar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.btn-quitar:hover {
+    background-color: #c0392b;
+}
+
+.resumen-pago {
+    margin-bottom: 20px;
+}
+
+.detalle-pago {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.total-final {
+    border-top: 2px solid #34495e;
+    margin-top: 10px;
+    padding-top: 10px;
+    font-weight: bold;
+}
+
+.valor-total {
+    color: #2ecc71;
+    font-size: 1.2em;
+}
+
+.opciones-pago {
+    margin-bottom: 20px;
+}
+
+.opciones-pago select,
+.opciones-pago input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.botones-acciones-tpv {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-accion {
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.btn-cobrar {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-cobrar:hover {
+    background-color: #27ae60;
+}
+
+.btn-cancelar {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-cancelar:hover {
+    background-color: #c0392b;
+}
+
+/* ============================================================================== */
+/* 7. ESTILOS PARA LOGIN */
+/* ============================================================================== */
+.login-contenedor {
+    width: 350px;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    margin: 50px auto;
+}
+
+.login-contenedor h2 {
+    color: #34495e;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+.login-contenedor input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: background-color 0.3s;
+}
+
+.btn-login:hover {
+    background-color: #27ae60;
+}
+
+.alerta-error {
+    color: #e74c3c;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9em;
+    display: block;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+/* ============================================================================== */
+/* 8. RESPONSIVE */
+/* ============================================================================== */
+@media (max-width: 768px) {
+    .contenido-flex {
+        flex-direction: column;
+    }
+    
+    .barra-lateral {
+        width: 100%;
+    }
+    
+    .tpv-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cabecera-inventario {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .total-invertido {
+        position: static;
+        margin-top: 10px;
+    }
+}
