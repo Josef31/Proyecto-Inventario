@@ -39,7 +39,7 @@
         </div>
     </aside>
 
-    <main class="seccion-servicios seccion-inventario">
+    <main class="seccion-inventario">
         <div class="cabecera-inventario">
             <h2>Servicios Disponibles</h2>
             <p class="total-invertido">Total de Servicios: <span id="total-servicios">{{ $totalServices }}</span></p>
@@ -63,7 +63,7 @@
                 @foreach($services as $index => $service)
                 <tr id="servicio-{{ $service->id }}">
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $service->name }}</td>
+                    <td><strong>{{ $service->name }}</strong></td>
                     <td>{{ $service->description ?? 'Sin descripción' }}</td>
                     <td>${{ number_format($service->base_cost, 2) }}</td>
                     <td>${{ number_format($service->customer_rate, 2) }}</td>
@@ -149,7 +149,7 @@ function agregarServicio() {
         if (data.success) {
             alert('Servicio agregado exitosamente');
             limpiarFormulario();
-            location.reload(); // Recargar para mostrar el nuevo servicio
+            location.reload();
         } else {
             alert('Error: ' + data.message);
         }
@@ -227,7 +227,6 @@ function actualizarContador() {
 
 function generarReporte() {
     alert('Generando reporte de servicios...');
-    // Aquí iría la lógica para generar el reporte
 }
 
 // Event listener para el formulario de edición
@@ -271,54 +270,4 @@ document.getElementById('form-editar-servicio').addEventListener('submit', funct
     });
 });
 </script>
-
-<style>
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-contenido {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 400px;
-    max-width: 90%;
-}
-
-.modal-botones {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btn-editar {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-eliminar {
-    background: #f44336;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-editar:hover { background: #45a049; }
-.btn-eliminar:hover { background: #da190b; }
-</style>
 @endsection

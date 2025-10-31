@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Service;
+use App\Models\BusinessService;
 use Illuminate\Support\Facades\DB;
 
 class ServicesController extends Controller
 {
     public function index()
     {
-        $services = Service::active()->get();
+        $services = BusinessService::active()->get();
         $totalServices = $services->count();
         
         return view('services.index', compact('services', 'totalServices'));
@@ -27,7 +27,7 @@ class ServicesController extends Controller
         ]);
 
         try {
-            Service::create([
+            BusinessService::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'base_cost' => $request->base_cost,
@@ -59,7 +59,7 @@ class ServicesController extends Controller
         ]);
 
         try {
-            $service = Service::findOrFail($id);
+            $service = BusinessService::findOrFail($id);
             $service->update($request->all());
 
             return response()->json([
@@ -78,8 +78,8 @@ class ServicesController extends Controller
     public function destroy($id)
     {
         try {
-            $service = Service::findOrFail($id);
-            $service->update(['is_active' => false]); // Soft delete
+            $service = BusinessService::findOrFail($id);
+            $service->update(['is_active' => false]);
 
             return response()->json([
                 'success' => true,
@@ -96,7 +96,7 @@ class ServicesController extends Controller
 
     public function getServices()
     {
-        $services = Service::active()->get();
+        $services = BusinessService::active()->get();
         
         return response()->json($services);
     }
