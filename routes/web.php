@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\CashController;
+use App\Http\Controllers\InvoicesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -11,25 +15,33 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     // Ruta principal de inventario
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    
-    // Rutas para AJAX del inventario
     Route::post('/inventory/store', [InventoryController::class, 'store']);
     Route::delete('/inventory/{id}', [InventoryController::class, 'destroy']);
     
-    // Rutas temporales para las otras páginas
-    Route::get('/sales', function () {
-        return 'Página de Ventas - En construcción';
-    });
+    // Rutas para ventas
+    Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
+    Route::get('/sales/search', [SalesController::class, 'searchProducts'])->name('sales.search');
+    Route::post('/sales/process', [SalesController::class, 'processSale'])->name('sales.process');
+    Route::get('/sales/today', [SalesController::class, 'getTodaySales'])->name('sales.today');
     
-    Route::get('/services', function () {
-        return 'Página de Servicios - En construcción';
-    });
+    // Rutas para servicios
+    Route::get('/services', [ServicesController::class, 'index'])->name('services.index');
+    Route::post('/services/store', [ServicesController::class, 'store'])->name('services.store');
+    Route::put('/services/{id}', [ServicesController::class, 'update'])->name('services.update');
+    Route::delete('/services/{id}', [ServicesController::class, 'destroy'])->name('services.destroy');
+    Route::get('/services/get', [ServicesController::class, 'getServices'])->name('services.get');
     
-    Route::get('/cash', function () {
-        return 'Página de Caja - En construcción';
-    });
+    // Rutas para caja
+    Route::get('/cash', [CashController::class, 'index'])->name('cash.index');
+    Route::post('/cash/open', [CashController::class, 'openCashRegister'])->name('cash.open');
+    Route::post('/cash/close', [CashController::class, 'closeCashRegister'])->name('cash.close');
+    Route::get('/cash/registers', [CashController::class, 'getCashRegisters'])->name('cash.registers');
+    Route::get('/cash/today-sales', [CashController::class, 'getTodayCashSales'])->name('cash.today-sales');
     
-    Route::get('/invoices', function () {
-        return 'Página de Facturas - En construcción';
-    });
+    // Rutas para facturas
+    Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
+    Route::get('/invoices/{id}/details', [InvoicesController::class, 'getInvoiceDetails'])->name('invoices.details');
+    Route::get('/invoices/get/all', [InvoicesController::class, 'getInvoices'])->name('invoices.get');
 });
