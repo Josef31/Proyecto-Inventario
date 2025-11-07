@@ -8,27 +8,28 @@
     @stack('styles')
 </head>
 <body>
+    
+    <header class="barra-superior">
+        <nav>
+            <a href="{{ route('inventory.index') }}">Administracion</a>
+            <a href="{{ route('inventory.index') }}">Inventario</a>
+            <a href="{{ route('sales.index') }}">Ventas</a>
+            <a href="{{ route('services.index') }}">Servicios</a>
+            <a href="{{ route('cash.index') }}">Estado de caja</a>
+            <a href="{{ route('invoices.index') }}">Facturas</a>
+            
+            @auth
+                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                    @csrf
+                    <button type="submit" style="background: none; border: none; color: #333; cursor: pointer; font-weight: bold;">
+                        Cerrar Sesión
+                    </button>
+                </form>
+            @endauth
+        </nav>
+    </header>
     <div class="contenedor-principal">
         
-        <header class="barra-superior">
-            <nav>
-                <a href="{{ route('inventory.index') }}">Administracion</a>
-                <a href="{{ route('inventory.index') }}">Inventario</a>
-                <a href="{{ route('sales.index') }}">Ventas</a>
-                <a href="{{ route('services.index') }}">Servicios</a>
-                <a href="{{ route('cash.index') }}">Estado de caja</a>
-                <a href="{{ route('invoices.index') }}">Facturas</a>
-                
-                @auth
-                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" style="background: none; border: none; color: #333; cursor: pointer; font-weight: bold;">
-                            Cerrar Sesión
-                        </button>
-                    </form>
-                @endauth
-            </nav>
-        </header>
 
         <div class="contenido-flex">
             @yield('sidebar')

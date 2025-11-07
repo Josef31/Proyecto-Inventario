@@ -588,3 +588,288 @@ body {
         margin-top: 10px;
     }
 }
+/* ============================================================================== */
+/* 9. ESTILOS ESPECÍFICOS PARA LA TABLA DE SERVICIOS */
+/* ============================================================================== */
+
+/* Estilos de la Tabla (Sobrescriben o complementan .tabla-inventario) */
+.tabla-inventario th {
+    /* Alineación de columnas numéricas (Costo Base, Tarifa Cliente, etc.) */
+    text-align: center;
+}
+
+.tabla-inventario th:nth-child(2), /* Nombre del Servicio */
+.tabla-inventario th:nth-child(3) { /* Descripción */
+    text-align: left;
+}
+
+.tabla-inventario td {
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+
+/* Alineación de datos en el cuerpo de la tabla (Basado en la imagen) */
+.tabla-inventario tbody td {
+    text-align: center;
+}
+
+.tabla-inventario tbody td:nth-child(2), /* Nombre del Servicio */
+.tabla-inventario tbody td:nth-child(3) { /* Descripción */
+    text-align: left;
+}
+
+.tabla-inventario tbody td:nth-child(3) { /* Columna de Descripción */
+    max-width: 300px; /* Limitar ancho para que no se extienda demasiado */
+    word-wrap: break-word; /* Permite que el texto largo se rompa */
+    font-size: 0.85em;
+    color: #555;
+}
+
+/* Estilo para los valores de moneda */
+.tabla-inventario tbody td:nth-child(4), /* Costo Base */
+.tabla-inventario tbody td:nth-child(5), /* Tarifa Cliente */
+.tabla-inventario tbody td:nth-child(7) { /* Ganancia Estimada */
+    font-weight: bold;
+    color: #34495e;
+}
+
+/* Resaltar la columna del Margen % */
+.tabla-inventario tbody td:nth-child(8) {
+    background-color: #ecf0f1; /* Fondo suave para destacar */
+    font-weight: bold;
+    color: #2c3e50; /* Color de texto más oscuro */
+    border-left: 3px solid #3498db; /* Borde izquierdo para énfasis */
+}
+
+/* Botones de Acciones */
+.btn-editar, .btn-eliminar {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: bold;
+    margin-right: 5px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-editar {
+    background-color: #3498db;
+    color: white;
+    border: 1px solid #3498db;
+}
+
+.btn-editar:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.btn-eliminar {
+    background-color: #e74c3c;
+    color: white;
+    border: 1px solid #e74c3c;
+}
+
+.btn-eliminar:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+}
+
+/* Estilos de Modal */
+
+.modal {
+    /* Posición fija para cubrir toda la pantalla */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4); /* Fondo semi-transparente oscuro */
+    display: flex; /* Para centrar el contenido */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-contenido {
+    background-color: #fefefe;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 90%; /* Ancho en móviles */
+    max-width: 500px; /* Ancho máximo en escritorio */
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.modal-contenido h3 {
+    color: #34495e;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.modal-contenido label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-contenido input,
+.modal-contenido textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.modal-contenido textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-botones .btn-cancelar {
+    padding: 10px 20px;
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-botones .btn-cancelar:hover {
+    background-color: #7f8c8d;
+}
+
+.modal-botones .btn-listo { /* Utiliza el estilo existente de .btn-listo */
+    width: auto; /* Anula el 100% para que solo ocupe su contenido */
+    padding: 10px 20px;
+    margin-top: 0;
+}
+
+/* Estilos adicionales para que .btn-eliminar y .btn-editar se vean mejor en la tabla */
+.tabla-inventario td:last-child {
+    white-space: nowrap; /* Evita que los botones se envuelvan a menos que el espacio sea muy reducido */
+}
+
+/* ============================================================================== */
+/* 10. ESTILOS ESPECÍFICOS PARA LA GESTIÓN DE CAJA (Estado de Caja) */
+/* ============================================================================== */
+
+/* Estilos de Resumen en la Barra Lateral */
+
+/* Panel de Apertura/Cierre */
+.seccion-formulario hr {
+    border: 0;
+    border-top: 1px solid #4a6681;
+    margin: 15px 0;
+}
+
+.seccion-formulario h4 {
+    font-size: 1em;
+    font-weight: bold;
+    color: #2ecc71; /* Verde coherente con éxito */
+    margin-bottom: 10px;
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+/* Detalle de Pago (usado para el resumen del día) */
+#panel-cierre .detalle-pago {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+#panel-cierre .detalle-pago p:last-child {
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+#panel-cierre .detalle-pago.total-final {
+    border-top: 1px solid #4a6681;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 1em;
+    color: white; /* Texto blanco en la barra lateral oscura */
+}
+
+/* Botón de Abrir/Cerrar Caja */
+#panel-cierre .btn-cancelar { /* Usamos btn-cancelar para 'Cerrar Caja' por su color rojo */
+    width: 100%;
+    padding: 10px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+#panel-cierre .btn-cancelar:hover {
+    background-color: #c0392b;
+}
+
+/* Estilos de la Tabla Historial de Cortes */
+
+/* Encabezados */
+.tabla-inventario.tabla-cortes th {
+    text-align: center;
+}
+.tabla-inventario.tabla-cortes th:first-child, /* Fecha de Apertura */
+.tabla-inventario.tabla-cortes th:last-child { /* Estado */
+    text-align: center;
+}
+
+/* Cuerpo de la Tabla */
+.tabla-inventario.tabla-cortes td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Resaltar la diferencia (positivo/negativo) */
+.tabla-inventario.tabla-cortes .texto-positivo {
+    background-color: #e8f5e9; /* Fondo verde muy claro para sobresalto */
+    color: #2e7d32; /* Verde oscuro */
+    font-weight: bold;
+}
+
+.tabla-inventario.tabla-cortes .texto-negativo {
+    background-color: #ffebee; /* Fondo rojo muy claro para sobresalto */
+    color: #c62828; /* Rojo oscuro */
+    font-weight: bold;
+}
+
+/* Estilos de Badge (Etiqueta de Estado) */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.badge-abierta {
+    background: #2ecc71; /* Verde para abierta */
+    color: white;
+}
+
+.badge-cerrada {
+    background: #95a5a6; /* Gris para cerrada */
+    color: white;
+}
