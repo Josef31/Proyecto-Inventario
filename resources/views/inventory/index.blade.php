@@ -7,66 +7,83 @@
     
     <aside class="barra-lateral">
         <div class="perfil">
-            <div class="icono-perfil"></div>
-            {{-- Usamos auth()->user() directamente si el layout.app ya lo tiene --}}
+            <div class="icono-perfil">
+                <img class="icono" src="{{ asset('images/perfil.png') }}" alt="Usuario" width="80" height="80">
+            </div>
             <p class="nombre-usuario">{{ auth()->user()->name }}</p> 
-            {{-- Asumiendo que el rol se obtiene de la sesión o del modelo User --}}
             <p class="rol-usuario">{{ auth()->user()->role ?? 'Administrador' }}</p>
         </div>
 
         <div class="seccion-formulario">
             <h3>NUEVO ARTÍCULO</h3>
             
-            <form id="form-producto">
+            <form id="form-producto" method="POST" action="{{ route('inventory.store') }}">
                 @csrf
+                
                 <label for="clasificacion">Clasificación / Talla:</label>
                 <select id="clasificacion" name="classification">
-                    <option value="N/A">N/A</option>
-                    <option value="Calzado">Calzado</option>
-                    <option value="Vestido">Vestido</option>
-                    <option value="S">Talla S</option>
-                    <option value="Papelería">Papelería</option>
-                    <option value="Herramientas">Herramientas</option>
+                    <option value="N/A" {{ old('classification') == 'N/A' ? 'selected' : '' }}>N/A</option>
+                    <option value="Calzado" {{ old('classification') == 'Calzado' ? 'selected' : '' }}>Calzado</option>
+                    <option value="Vestido" {{ old('classification') == 'Vestido' ? 'selected' : '' }}>Vestido</option>
+                    <option value="S" {{ old('classification') == 'S' ? 'selected' : '' }}>Talla S</option>
+                    <option value="Papelería" {{ old('classification') == 'Papelería' ? 'selected' : '' }}>Papelería</option>
+                    <option value="Herramientas" {{ old('classification') == 'Herramientas' ? 'selected' : '' }}>Herramientas</option>
                 </select>
 
                 <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="name" required>
+                <input type="text" id="nombre" name="name" value="{{ old('name') }}" required>
                 
                 <label for="precio-compra">Precio Compra:</label>
-                <input type="number" id="precio-compra" name="price_buy" min="0" step="0.01" required>
+                <input type="number" id="precio-compra" name="price_buy" min="0" step="0.01" value="{{ old('price_buy') }}" required>
                 
                 <label for="precio-venta">Precio Venta (Mínimo requerido):</label>
-                {{-- Se quita el atributo readonly para permitir la edición, si fuera necesario --}}
-                <input type="number" id="precio-venta" name="price_sell" min="0" step="0.01" required> 
+                <input type="number" id="precio-venta" name="price_sell" min="0" step="0.01" value="{{ old('price_sell') }}" required> 
                 
                 <label for="stock-actual">Stock Inicial:</label>
-                <input type="number" id="stock-actual" name="stock_initial" min="0" required>
+                <input type="number" id="stock-actual" name="stock_initial" min="0" value="{{ old('stock_initial') }}" required>
                 
                 <label for="stock-minimo">Stock Mínimo (Alerta):</label>
-                <input type="number" id="stock-minimo" name="stock_minimum" min="0" required>
+                <input type="number" id="stock-minimo" name="stock_minimum" min="0" value="{{ old('stock_minimum') }}" required>
 
                 <label for="fecha-vencimiento">Fecha de Vencimiento:</label>
-                <input type="date" id="fecha-vencimiento" name="expiration_date">
+                <input type="date" id="fecha-vencimiento" name="expiration_date" value="{{ old('expiration_date') }}">
                 
-                <button type="button" class="btn-listo" onclick="agregarProducto()">Listo</button>
+                <button type="submit" class="btn-listo">Listo</button>
             </form>
         </div>
 
-        <div class="seccion-acciones-admin">
+        {{-- 🚨 CORRECCIÓN: Estilo para centrar el botón --}}
+        <div class="seccion-acciones-admin" style="text-align: center;"> 
             <h3>ACCIONES ADMIN</h3>
-            <button class="btn-admin-accion btn-ajuste-stock">Ajuste de Inventario</button>
-            <button class="btn-admin-accion btn-autoconsumo">Ajuste de Autoconsumo</button>
+            {{-- Botón Ajuste de Inventario (Placeholder) --}}
+            <a href="{{ route('inventory.adjustment.form') }}" class="btn-admin-accion btn-ajuste-stock">Ajuste de Inventario</a>
         </div>
     </aside>
 
     <main class="seccion-inventario">
         <div class="cabecera-inventario">
             <h2>Articulos en el Inventario</h2>
-            <div class="alerta-exito" id="alerta-exito" style="display: none;">
-                <span class="icono-ayuda">✓</span>
-                <p>Se creó el artículo con éxito</p>
-            </div>
-            {{-- Se usa la variable $totalInvested pasada desde el controlador --}}
+            
+            {{-- Mensajes de Sesión --}}
+            @if (session('success'))
+                <div class="alerta-exito" style="display: flex;">
+                    <span class="icono-ayuda">✓</span>
+                    <p>{{ session('success') }}</p>
+                </div>
+            @endif
+            @if (session('error') || session('info'))
+                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
+                    <span class="icono-ayuda">✗</span>
+                    <p>{{ session('error') ?? session('info') }}</p>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
+                    <span class="icono-ayuda">✗</span>
+                    <p>Error de validación: {{ $errors->first() }}</p>
+                </div>
+            @endif
+            
             <p class="total-invertido">Total invertido en inventario: <span id="total-invertido">${{ number_format($totalInvested, 2) }}</span></p> 
         </div>
 
@@ -86,33 +103,11 @@
             <tbody id="tabla-cuerpo">
                 @foreach($products as $product)
                     @php
-                        // Lógica de Blade para las clases
-                        $stockClass = '';
-                        $rowClass = '';
-                        $vencimientoClass = ''; // Nueva clase para la fecha
-
-                        if ($product->stock_initial <= 0) {
-                            $stockClass = 'stock-agotado';
-                            $rowClass = 'alerta-vencimiento';
-                        } elseif ($product->stock_initial <= $product->stock_minimum || $product->stock_initial <= 5) {
-                            $stockClass = 'stock-bajo';
-                            $rowClass = 'alerta-stock';
-                        }
-                        
-                        $fechaTexto = 'N/A';
-                        if ($product->expiration_date) {
-                            $fechaVencimiento = \Carbon\Carbon::parse($product->expiration_date);
-                            $fechaTexto = $fechaVencimiento->format('Y-m-d');
-                            $unMesDespues = now()->addMonth();
-
-                            if ($fechaVencimiento->isPast()) {
-                                $rowClass = 'alerta-vencimiento'; // Vencido: Color rojo
-                                $vencimientoClass = 'vencimiento-cerca';
-                            } elseif ($fechaVencimiento <= $unMesDespues) {
-                                $rowClass = $rowClass == 'alerta-vencimiento' ? 'alerta-vencimiento' : 'alerta-stock'; // Próximo a vencer: Color amarillo/rojo
-                                $vencimientoClass = 'vencimiento-cerca';
-                            }
-                        }
+                        // Asumiendo que estos Accessors existen en Product.php
+                        $stockClass = $product->getStockClassAttribute();
+                        $rowClass = $product->getRowClassAttribute();
+                        $vencimientoClass = $product->getIsNearExpirationAttribute() ? 'vencimiento-cerca' : '';
+                        $fechaTexto = $product->getFormattedExpirationDateAttribute();
                     @endphp
                     
                     <tr class="{{ $rowClass }}">
@@ -124,8 +119,18 @@
                         <td><span class="{{ $vencimientoClass }}">{{ $fechaTexto }}</span></td>
                         <td>${{ number_format($product->price_sell, 2) }}</td>
                         <td class="acciones">
-                            <button class="btn-detalles">Detalles</button>
-                            <button class="btn-eliminar" onclick="eliminarProducto({{ $product->id }})">Eliminar</button>
+                            {{-- 🚨 Botón Detalles: Placeholder (sin acción de edición) --}}
+                            <button class="btn-detalles" onclick="alert('Mostrando detalles de {{ $product->name }}.')">Detalles</button> 
+                            
+                            {{-- 🚨 Botón Editar: Dirige a la edición individual --}}
+                            <a href="{{ route('inventory.edit', $product->id) }}" class="btn-editar" style="background-color: #039438; color: white; padding: 5px 10px; border-radius: 3px; margin-right: 5px; text-decoration: none;">Editar</a>
+                            
+                            {{-- Botón Eliminar --}}
+                            <form action="{{ route('inventory.destroy', $product->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este artículo?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-eliminar">Eliminar</button>
+                            </form>
                         </td>
                     </tr>
                 @endforeach
@@ -137,7 +142,7 @@
 
 @section('scripts')
 <script>
-    // Calcular precio de venta mínimo automáticamente
+    // Cálculo local del precio de venta mínimo (UX)
     document.addEventListener('DOMContentLoaded', function() {
         const precioCompraInput = document.getElementById('precio-compra');
         const precioVentaInput = document.getElementById('precio-venta');
@@ -151,131 +156,10 @@
                     return;
                 }
                 
-                const precioVentaMinimo = precioCompra * 1.3; // 30% de margen
+                const precioVentaMinimo = precioCompra * 1.3;
                 precioVentaInput.value = precioVentaMinimo.toFixed(2);
             });
         }
-
-        // Botones de admin (Solo alertas en el front-end)
-        const btnAjusteStock = document.querySelector('.btn-ajuste-stock');
-        const btnAutoconsumo = document.querySelector('.btn-autoconsumo');
-        
-        if (btnAjusteStock) {
-            btnAjusteStock.addEventListener('click', function() {
-                alert('Funcionalidad de Ajuste de Inventario - En desarrollo');
-            });
-        }
-        
-        if (btnAutoconsumo) {
-            btnAutoconsumo.addEventListener('click', function() {
-                alert('Funcionalidad de Ajuste de Autoconsumo - En desarrollo');
-            });
-        }
     });
-
-    function agregarProducto() {
-        const nombre = document.getElementById('nombre').value.trim();
-        const precioCompra = parseFloat(document.getElementById('precio-compra').value);
-        const precioVenta = parseFloat(document.getElementById('precio-venta').value);
-        const stockInicial = parseInt(document.getElementById('stock-actual').value) || 0;
-        const stockMinimo = parseInt(document.getElementById('stock-minimo').value) || 0;
-        const clasificacion = document.getElementById('clasificacion').value;
-        const fechaVencimiento = document.getElementById('fecha-vencimiento').value;
-        
-        if (nombre === '' || isNaN(precioCompra) || isNaN(precioVenta)) {
-            alert('Por favor, rellena todos los campos de forma correcta.');
-            return;
-        }
-
-        // Nota: La validación de margen mínimo es mejor hacerla en el backend
-        
-        // Crear FormData para enviar
-        const formData = {
-            name: nombre,
-            classification: clasificacion,
-            price_buy: precioCompra,
-            price_sell: precioVenta,
-            stock_initial: stockInicial,
-            stock_minimum: stockMinimo,
-            expiration_date: fechaVencimiento,
-            _token: '{{ csrf_token() }}'
-        };
-
-        // Enviar via AJAX 
-        fetch('/inventory/store', {
-            method: 'POST',
-            body: JSON.stringify(formData), // Convertir a JSON
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                mostrarAlertaExito();
-                limpiarFormulario();
-                // Recargar la página para mostrar el nuevo producto
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                // Manejo de errores más robusto
-                const errorMessage = data.errors ? Object.values(data.errors).join('\n') : (data.error || data.message || 'Error desconocido al guardar.');
-                alert('Error al guardar el producto:\n' + errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al agregar el producto. Verifique la conexión.');
-        });
-    }
-
-    function eliminarProducto(id) {
-        if (!confirm('¿Estás seguro de que quieres eliminar este artículo?')) {
-            return;
-        }
-
-        fetch(`/inventory/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Recargar la página para actualizar la tabla
-                window.location.reload();
-            } else {
-                alert('Error al eliminar: ' + (data.error || data.message || 'Error desconocido.'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar el producto. Verifique la conexión.');
-        });
-    }
-
-    function limpiarFormulario() {
-        document.getElementById('nombre').value = '';
-        document.getElementById('precio-compra').value = '';
-        document.getElementById('precio-venta').value = '';
-        document.getElementById('stock-actual').value = '';
-        document.getElementById('stock-minimo').value = '';
-        document.getElementById('fecha-vencimiento').value = '';
-        document.getElementById('clasificacion').value = 'N/A';
-    }
-
-    function mostrarAlertaExito() {
-        const alerta = document.getElementById('alerta-exito');
-        if (alerta) {
-            alerta.style.display = 'flex';
-            setTimeout(() => { 
-                alerta.style.display = 'none'; 
-            }, 3000);
-        }
-    }
 </script>
 @endsection

@@ -12,21 +12,57 @@ use Illuminate\Support\Facades\Auth;
 class SalesController extends Controller
 {
     public function index()
-    {
-        return view('sales.index');
-    }
+{
+    // 1. Traer todos los productos que tienen stock (Asegúrate que 'stock_initial' y 'code'
+    // existan en tu base de datos. Si no, usa los nombres correctos como 'stock' y 'product_code').
+    $products = Product::where('stock_initial', '>', 0)
+        ->select('id', 'name', 'price_sell', 'stock_initial')
+        ->get();
+
+    // 2. Esta operación convierte la colección de modelos a una colección de arrays de PHP.
+    $products = $products->map(function ($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price_sell,
+            'stock' => $product->stock_initial, // stock disponible
+        ];
+    });
+
+    // 3. Pasar la colección a la vista. Ahora $products es una colección de arrays.
+    return view('sales.index', compact('products'));
+}
 
     public function searchProducts(Request $request)
-    {
-        $search = $request->get('search');
+{
+    $search = $request->get('search');
+    
+    // Verificamos si el término de búsqueda es un número entero.
+    $is_numeric = is_numeric($search) && floor($search) == $search;
+    
+    $products = Product::where(function($query) use ($search, $is_numeric) {
         
-        $products = Product::where('name', 'LIKE', "%{$search}%")
-                          ->orWhere('code', 'LIKE', "%{$search}%")
-                          ->where('stock', '>', 0)
-                          ->get(['id', 'name', 'code', 'price', 'stock']);
+        // 1. Siempre buscamos por 'name' (LIKE)
+        $query->where('name', 'LIKE', "%{$search}%"); 
         
-        return response()->json($products);
-    }
+        // 2. Si el término es un número entero, lo incluimos en la búsqueda por 'id'
+        if ($is_numeric) {
+            $query->orWhere('id', (int)$search);
+        }
+    })
+    // Condición de stock: solo productos con existencias
+    ->where('stock_initial', '>', 0) 
+    // Seleccionamos las columnas correctas ('code' fue omitida, 'price_sell' renombrada a 'price')
+    ->get(['id', 'name', 'price_sell AS price', 'stock_initial']); 
+    
+    // Renombramos 'stock_initial' a 'stock' para que el frontend (JavaScript) lo reconozca
+    $products->each(function ($product) {
+        $product->stock = $product->stock_initial;
+        unset($product->stock_initial); 
+    });
+
+    return response()->json($products);
+}
 
     public function processSale(Request $request)
     {

@@ -7,7 +7,9 @@
     
     <aside class="barra-lateral">
         <div class="perfil">
-            <div class="icono-perfil"></div>
+            <div class="icono-perfil">
+                <img class="icono" src="{{ asset('images/perfil.png') }}" alt="Usuario" width="80" height="80">
+            </div>
             <p class="nombre-usuario">{{ auth()->user()->name }}</p>
             <p class="rol-usuario">Administrador</p>
         </div>

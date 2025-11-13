@@ -11,24 +11,15 @@ class InventoryController extends Controller
 {
     public function index()
     {
-        // Obtener productos de la base de datos
         $products = Product::all();
-        
-        // Calcular total invertido
-        $totalInvested = Product::get()->sum('total_investment');
+        // Asumiendo que 'total_investment' es un Accessor en el modelo Product
+        $totalInvested = $products->sum('total_investment');
 
-        // Pasar los datos del usuario autenticado a la vista
-        $user = [
-            'name' => Auth::user()->name,
-            'role' => 'Administrador'
-        ];
-
-        return view('inventory.index', compact('user', 'products', 'totalInvested'));
+        return view('inventory.index', compact('products', 'totalInvested'));
     }
 
     public function store(Request $request)
     {
-        // Validar los datos
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'classification' => 'required|string|max:100',
@@ -39,30 +30,50 @@ class InventoryController extends Controller
             'expiration_date' => 'nullable|date',
         ]);
 
-        // Validar margen mínimo del 30%
         $minSellPrice = $validated['price_buy'] * 1.3;
         if ($validated['price_sell'] < $minSellPrice) {
-            return response()->json([
-                'success' => false,
-                'error' => 'El precio de venta no cumple con el margen mínimo del 30% requerido.'
-            ], 422);
+            return redirect()->back()->withErrors(['price_sell' => 'El precio de venta no cumple con el margen mínimo del 30% requerido.'])->withInput();
         }
 
         try {
-            // Crear el producto
-            $product = Product::create($validated);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Producto creado exitosamente',
-                'product' => $product
-            ]);
-
+            Product::create($validated);
+            return redirect()->route('inventory.index')->with('success', '¡Producto creado exitosamente!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Error al crear el producto: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->with('error', 'Error al crear el producto: ' . $e->getMessage())->withInput();
+        }
+    }
+    
+    // Muestra el formulario de edición individual
+    public function edit($id) 
+    {
+        $product = Product::findOrFail($id);
+        return view('inventory.edit', compact('product'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'classification' => 'required|string|max:100',
+            'price_buy' => 'required|numeric|min:0',
+            'price_sell' => 'required|numeric|min:0',
+            'stock_initial' => 'required|integer|min:0',
+            'stock_minimum' => 'required|integer|min:0',
+            'expiration_date' => 'nullable|date',
+        ]);
+        
+        $minSellPrice = $validated['price_buy'] * 1.3;
+        if ($validated['price_sell'] < $minSellPrice) {
+            return redirect()->back()->withErrors(['price_sell' => 'El precio de venta no cumple con el margen mínimo del 30% requerido.'])->withInput();
+        }
+
+        try {
+            $product->update($validated);
+            return redirect()->route('inventory.index')->with('success', '¡Producto actualizado exitosamente!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al actualizar el producto: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -71,30 +82,16 @@ class InventoryController extends Controller
         try {
             $product = Product::findOrFail($id);
             $product->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Producto eliminado exitosamente'
-            ]);
-
+            return redirect()->route('inventory.index')->with('success', '¡Producto eliminado exitosamente!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Error al eliminar el producto: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->with('error', 'Error al eliminar el producto: ' . $e->getMessage());
         }
     }
 
-    public function getInventoryStats()
+    public function showAdjustmentForm()
     {
-        $stats = [
-            'total_products' => Product::count(),
-            'total_investment' => Product::get()->sum('total_investment'),
-            'low_stock_count' => Product::lowStock()->count(),
-            'out_of_stock_count' => Product::outOfStock()->count(),
-            'near_expiration_count' => Product::nearExpiration()->count(),
-        ];
-
-        return response()->json($stats);
+        // En este punto, solo redirigimos a index con un mensaje o a una nueva vista
+        return redirect()->route('inventory.index')->with('info', 'Funcionalidad de Ajuste de Inventario Masivo: En desarrollo.');
     }
+
 }

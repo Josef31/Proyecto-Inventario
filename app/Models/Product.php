@@ -16,7 +16,7 @@ class Product extends Model
         'classification',
         'price_buy',
         'price_sell',
-        'stock_initial', // Cambiado de stock_actual a stock_initial
+        'stock_initial', 
         'stock_minimum',
         'expiration_date'
     ];
@@ -33,7 +33,7 @@ class Product extends Model
     public function scopeLowStock($query)
     {
         return $query->where('stock_initial', '<=', DB::raw('stock_minimum'))
-                    ->orWhere('stock_initial', '<=', 5);
+                     ->orWhere('stock_initial', '<=', 5);
     }
 
     /**
@@ -50,11 +50,11 @@ class Product extends Model
     public function scopeNearExpiration($query)
     {
         return $query->whereNotNull('expiration_date')
-                    ->where('expiration_date', '<=', Carbon::now()->addMonth());
+                     ->where('expiration_date', '<=', Carbon::now()->addMonth());
     }
 
     /**
-     * Verificar si el stock está bajo
+     * Verificar si el stock está bajo (Accessor)
      */
     public function getIsLowStockAttribute()
     {
@@ -62,7 +62,7 @@ class Product extends Model
     }
 
     /**
-     * Verificar si está agotado
+     * Verificar si está agotado (Accessor)
      */
     public function getIsOutOfStockAttribute()
     {
@@ -70,7 +70,7 @@ class Product extends Model
     }
 
     /**
-     * Verificar si está próximo a vencer
+     * Verificar si está próximo a vencer (Accessor)
      */
     public function getIsNearExpirationAttribute()
     {
@@ -78,11 +78,12 @@ class Product extends Model
             return false;
         }
         
-        return $this->expiration_date <= Carbon::now()->addMonth();
+        // Asegura que se compara una instancia de Carbon con otra
+        return Carbon::parse($this->expiration_date) <= Carbon::now()->addMonth();
     }
 
     /**
-     * Obtener la clase CSS para el stock
+     * Obtener la clase CSS para el stock (Accessor)
      */
     public function getStockClassAttribute()
     {
@@ -95,22 +96,24 @@ class Product extends Model
     }
 
     /**
-     * Obtener la clase CSS para la fila
+     * Obtener la clase CSS para la fila (Accessor)
      */
     public function getRowClassAttribute()
     {
         if ($this->is_out_of_stock) {
-            return 'alerta-vencimiento';
+            return 'alerta-vencimiento'; // Rojo (agotado)
         } elseif ($this->is_low_stock) {
-            return 'alerta-stock';
+            return 'alerta-stock'; // Amarillo (stock bajo)
         } elseif ($this->is_near_expiration) {
-            return 'alerta-vencimiento';
+             // Si tiene otra alerta, no la sobreescribe, pero en este caso la alerta de vencimiento
+             // es más importante, por lo que la dejamos como una clase que puede aplicar color.
+             return 'alerta-vencimiento'; 
         }
         return '';
     }
 
     /**
-     * Formatear fecha de vencimiento para mostrar
+     * Formatear fecha de vencimiento para mostrar (Accessor)
      */
     public function getFormattedExpirationDateAttribute()
     {
@@ -120,20 +123,11 @@ class Product extends Model
     }
 
     /**
-     * Calcular el valor total invertido en este producto
+     * Calcular el valor total invertido en este producto (Accessor)
      */
     public function getTotalInvestmentAttribute()
     {
         return $this->price_buy * $this->stock_initial;
-    }
-
-    /**
-     * Verificar si el precio de venta cumple con el margen mínimo
-     */
-    public function isValidMargin($margenMinimo = 0.3)
-    {
-        $precioMinimo = $this->price_buy * (1 + $margenMinimo);
-        return $this->price_sell >= $precioMinimo;
     }
 
     /**
