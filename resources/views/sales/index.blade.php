@@ -17,7 +17,11 @@
             <h3>DETALLES DE CLIENTE</h3>
             <input type="text" id="cliente-nombre" placeholder="Nombre del Cliente">
             <input type="text" id="cliente-rfc" placeholder="RFC/Identificación">
-            <button class="btn-listo">Asignar Cliente</button>
+            <button class="btn-listo" id="btn-asignar-tpv">Asignar Cliente</button>
+            <div id="cliente-info-tpv" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; display: none;">
+                <strong>Cliente asignado:</strong>
+                <div id="cliente-texto-tpv"></div>
+            </div>
         </div>
     </aside>
 
@@ -30,8 +34,7 @@
             <div class="tpv-col-izquierda">
 
                 <div class="buscador-productos">
-                    <!-- CORRECCIÓN: id correcto y evento correcto -->
-                    <select id="select-producto" onchange="seleccionarProducto()">
+                    <select id="producto-select-tpv">
                         <option value="" disabled selected>--- Seleccionar Producto ---</option>
                         @foreach ($products as $product)
                         <option
@@ -45,7 +48,6 @@
                     </select>
                 </div>
 
-
                 <div class="lista-carrito">
                     <h3>Detalle de la Venta (Carrito)</h3>
                     <table class="tabla-carrito">
@@ -58,7 +60,10 @@
                                 <th style="width: 50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="cuerpo-carrito">
+                        <tbody id="carrito-body-tpv">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">No hay productos en el carrito</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -69,417 +74,453 @@
                 <div class="resumen-pago">
                     <div class="detalle-pago">
                         <p>Subtotal:</p>
-                        <p id="total-subtotal">0.00</p>
+                        <p id="subtotal-tpv">$0.00</p>
                     </div>
                     <div class="detalle-pago">
                         <p>Impuestos (IVA 16%):</p>
-                        <p id="total-impuestos">0.00</p>
+                        <p id="impuestos-tpv">$0.00</p>
                     </div>
                     <div class="detalle-pago total-final">
                         <p>TOTAL A PAGAR:</p>
-                        <p class="valor-total" id="total-pagar">0.00</p>
+                        <p class="valor-total" id="total-tpv">$0.00</p>
                     </div>
                 </div>
 
                 <div class="opciones-pago">
                     <h4>Método de Pago</h4>
-                    <select id="metodo-pago">
+                    <select id="pago-metodo-tpv">
                         <option value="efectivo">Efectivo</option>
                         <option value="tarjeta">Tarjeta de Crédito/Débito</option>
                     </select>
-                    <input type="number" id="monto-recibido" placeholder="Monto Recibido" min="0" step="0.01">
+                    <input type="number" id="monto-tpv" placeholder="Monto Recibido" min="0" step="0.01">
 
                     <div class="detalle-pago">
                         <p>Su Cambio:</p>
-                        <p id="monto-cambio">0.00</p>
+                        <p id="cambio-tpv">$0.00</p>
                     </div>
                 </div>
 
                 <div class="botones-acciones-tpv">
-                    <button class="btn-accion btn-cobrar" onclick="finalizarVenta()">COBRAR VENTA</button>
-                    <button class="btn-accion btn-cancelar" onclick="cancelarVenta()">CANCELAR</button>
+                    <button class="btn-accion btn-cobrar" id="btn-cobrar-tpv">COBRAR VENTA</button>
+                    <button class="btn-accion btn-cancelar" id="btn-cancelar-tpv">CANCELAR</button>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
-
-
 <script>
 // =======================================================
-// 0. PROTECCIÓN CONTRA EVENTOS DUPLICADOS
+// TPV - SISTEMA AISLADO (No conflictos con JS global)
 // =======================================================
-// Remover event listeners duplicados si existen
-function limpiarEventListeners() {
-    const select = document.getElementById('select-producto');
-    const montoRecibido = document.getElementById('monto-recibido');
-    
-    if (select) {
-        const newSelect = select.cloneNode(true);
-        select.parentNode.replaceChild(newSelect, select);
-    }
-    
-    if (montoRecibido) {
-        const newMonto = montoRecibido.cloneNode(true);
-        montoRecibido.parentNode.replaceChild(newMonto, montoRecibido);
-    }
-}
-// =======================================================
-// 1. VARIABLES GLOBALES
-// =======================================================
-let saleCarrito = [];
-const SALE_IVA_RATE = 0.16;
 
-// =======================================================
-// 2. FUNCIÓN DE SELECCIÓN DE PRODUCTO
-// =======================================================
-function seleccionarProducto() {
-    console.log('🚨 VERSIÓN EMERGENCIA ACTIVADA');
+// Namespace para evitar conflictos
+const TPV = {
+    // Variables privadas
+    carrito: [],
+    cliente: null,
     
-    // Método directo que SÍ funciona
-    const select = document.getElementById('select-producto');
-    const option = select.options[select.selectedIndex];
+    // Inicialización
+    init: function() {
+        console.log('🔄 Inicializando TPV aislado...');
+        
+        // Asignar eventos con namespaces únicos
+        this.agregarEventos();
+        this.actualizarVistaCarrito();
+        this.calcularCambio();
+        
+        console.log('✅ TPV aislado listo');
+    },
     
-    // Agregar directamente al carrito
-    saleCarrito.push({
-        id: parseInt(option.value),
-        nombre: option.getAttribute('data-name'),
-        precio: parseFloat(option.getAttribute('data-price')),
-        cantidad: 1,
-        stockMaximo: parseInt(option.getAttribute('data-stock'))
-    });
+    // Agregar todos los eventos
+    agregarEventos: function() {
+        // Productos
+        document.getElementById('producto-select-tpv').addEventListener('change', () => this.agregarProducto());
+        
+        // Cliente
+        document.getElementById('btn-asignar-tpv').addEventListener('click', () => this.asignarCliente());
+        
+        // Ventas
+        document.getElementById('btn-cobrar-tpv').addEventListener('click', () => this.procesarVenta());
+        document.getElementById('btn-cancelar-tpv').addEventListener('click', () => this.limpiarTodo());
+        
+        // Pago
+        document.getElementById('monto-tpv').addEventListener('input', () => this.calcularCambio());
+        document.getElementById('pago-metodo-tpv').addEventListener('change', () => this.calcularCambio());
+    },
     
-    // Reset y actualizar
-    select.selectedIndex = 0;
-    actualizarCarrito();
-    
-    console.log('✅ Producto agregado (modo emergencia)');
-}
-
-// También fuerza la inicialización
-const select = document.getElementById('select-producto');
-if (select) {
-    select.onchange = seleccionarProducto;
-    console.log('✅ Evento reassignado');
-}
-
-// =======================================================
-// 3. ACTUALIZAR CARRITO - VERSIÓN CON VALIDACIÓN EXTREMA
-// =======================================================
-function actualizarCarrito() {
-    console.log('🔄 Actualizando carrito...');
-    
-    const cuerpo = document.getElementById('cuerpo-carrito');
-    if (!cuerpo) {
-        console.error('❌ No se encuentra cuerpo-carrito');
-        return;
-    }
-    
-    // GUARDAR referencia al carrito actual para debug
-    console.log('📦 Carrito actual:', saleCarrito);
-    
-    // LIMPIAR COMPLETAMENTE el cuerpo
-    cuerpo.innerHTML = '';
-    
-    let subtotal = 0;
-
-    // Si el carrito está vacío, solo actualizar totales a cero
-    if (saleCarrito.length === 0) {
-        console.log('🛒 Carrito vacío');
-        document.getElementById('total-subtotal').textContent = '0.00';
-        document.getElementById('total-impuestos').textContent = '0.00';
-        document.getElementById('total-pagar').textContent = '0.00';
-        // SOLO calcular cambio, no hacer nada más
-        calcularCambio();
-        return;
-    }
-    
-    console.log('📦 Renderizando', saleCarrito.length, 'productos');
-    
-    // Renderizar CADA ITEM individualmente
-    saleCarrito.forEach(item => {
-        // Validar que el item tenga datos válidos
-        if (!item || typeof item !== 'object') {
-            console.error('❌ Item inválido:', item);
+    // 1. AGREGAR PRODUCTO AL CARRITO
+    agregarProducto: function() {
+        console.log('🛍️ TPV: Agregando producto...');
+        
+        const select = document.getElementById('producto-select-tpv');
+        const opcion = select.options[select.selectedIndex];
+        
+        if (!opcion.value) {
+            console.log('❌ TPV: No se seleccionó producto');
             return;
         }
         
-        const precio = Number(item.precio) || 0;
-        const cantidad = Number(item.cantidad) || 0;
-        const itemSubtotal = precio * cantidad;
-        subtotal += itemSubtotal;
-
-        console.log('📝 Agregando item:', item.nombre, precio, cantidad, itemSubtotal);
-
-        // Crear fila NUEVA
-        const tr = document.createElement('tr');
+        const productoId = parseInt(opcion.value);
+        const productoNombre = opcion.getAttribute('data-name');
+        const productoPrecio = parseFloat(opcion.getAttribute('data-price'));
+        const productoStock = parseInt(opcion.getAttribute('data-stock'));
         
-        // Crear celdas INDIVIDUALMENTE para evitar problemas
-        const tdNombre = document.createElement('td');
-        tdNombre.textContent = item.nombre || 'Sin nombre';
+        console.log('📦 TPV Producto:', productoNombre, productoPrecio);
         
-        const tdCantidad = document.createElement('td');
-        const inputCantidad = document.createElement('input');
-        inputCantidad.type = 'number';
-        inputCantidad.value = cantidad;
-        inputCantidad.min = '1';
-        inputCantidad.max = item.stockMaximo || '999';
-        inputCantidad.style = 'width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;';
-        inputCantidad.onchange = function() { actualizarCantidad(item.id, this.value); };
-        tdCantidad.appendChild(inputCantidad);
-        
-        const tdPrecio = document.createElement('td');
-        tdPrecio.textContent = `$${precio.toFixed(2)}`;
-        
-        const tdSubtotal = document.createElement('td');
-        tdSubtotal.textContent = `$${itemSubtotal.toFixed(2)}`;
-        
-        const tdAccion = document.createElement('td');
-        const btnEliminar = document.createElement('button');
-        btnEliminar.textContent = '×';
-        btnEliminar.style = 'background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold;';
-        btnEliminar.onclick = function() { eliminarDelCarrito(item.id); };
-        tdAccion.appendChild(btnEliminar);
-        
-        // Agregar celdas a la fila
-        tr.appendChild(tdNombre);
-        tr.appendChild(tdCantidad);
-        tr.appendChild(tdPrecio);
-        tr.appendChild(tdSubtotal);
-        tr.appendChild(tdAccion);
-        
-        // Agregar fila al cuerpo
-        cuerpo.appendChild(tr);
-    });
-    
-    // Calcular totales
-    const impuestos = subtotal * SALE_IVA_RATE;
-    const total = subtotal + impuestos;
-    
-    console.log('💰 Totales:', subtotal, impuestos, total);
-    
-    // Actualizar UI
-    document.getElementById('total-subtotal').textContent = subtotal.toFixed(2);
-    document.getElementById('total-impuestos').textContent = impuestos.toFixed(2);
-    document.getElementById('total-pagar').textContent = total.toFixed(2);
-    
-    calcularCambio();
-}
-
-// =======================================================
-// 4. FUNCIONES BÁSICAS DEL CARRITO
-// =======================================================
-function eliminarDelCarrito(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
-        saleCarrito = saleCarrito.filter(item => item.id !== id);
-        actualizarCarrito();
-    }
-}
-
-function actualizarCantidad(id, nuevaCantidad) {
-    const cantidad = parseInt(nuevaCantidad);
-    if (cantidad <= 0 || isNaN(cantidad)) {
-        eliminarDelCarrito(id);
-        return;
-    }
-    
-    const item = saleCarrito.find(item => item.id === id);
-    if (item) {
-        item.cantidad = cantidad;
-        actualizarCarrito();
-    }
-}
-
-// =======================================================
-// 5. PAGO Y EVENTOS
-// =======================================================
-function calcularCambio() {
-    console.log('💰 Calculando cambio...');
-    
-    const montoRecibido = document.getElementById('monto-recibido');
-    const totalPagar = document.getElementById('total-pagar');
-    const montoCambio = document.getElementById('monto-cambio');
-    const metodoPago = document.getElementById('metodo-pago');
-    const btnCobrar = document.querySelector('.btn-cobrar');
-
-    if (!montoRecibido || !totalPagar || !montoCambio || !metodoPago || !btnCobrar) {
-        console.error('❌ Elementos de pago no encontrados');
-        return;
-    }
-
-    const monto = parseFloat(montoRecibido.value) || 0;
-    const total = parseFloat(totalPagar.textContent) || 0;
-    const metodo = metodoPago.value;
-
-    console.log('📊 Datos para cálculo:', { monto, total, metodo });
-
-    let cambio = 0;
-    let esValido = false;
-
-    if (metodo === 'efectivo') {
-        cambio = monto - total;
-        esValido = monto >= total;
-        console.log('💵 Efectivo - Cambio:', cambio, 'Válido:', esValido);
-    } else {
-        cambio = 0;
-        esValido = total > 0;
-        console.log('💳 Tarjeta - Válido:', esValido);
-    }
-
-    montoCambio.textContent = Math.max(0, cambio).toFixed(2);
-
-    if (esValido && total > 0) {
-        btnCobrar.disabled = false;
-        btnCobrar.style.backgroundColor = '#2ecc71';
-        console.log('✅ Botón cobrar habilitado');
-    } else {
-        btnCobrar.disabled = true;
-        btnCobrar.style.backgroundColor = '#cccccc';
-        console.log('❌ Botón cobrar deshabilitado');
-    }
-}
-
-// =======================================================
-// 6. FUNCIONES DE VENTA
-// =======================================================
-async function finalizarVenta() {
-    if (saleCarrito.length === 0) {
-        alert('El carrito está vacío. Agrega productos para cobrar.');
-        return;
-    }
-
-    const total = parseFloat(document.getElementById('total-pagar').textContent);
-    const metodoPago = document.getElementById('metodo-pago').value;
-    const montoRecibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
-
-    if (metodoPago === 'efectivo' && montoRecibido < total) {
-        alert('El monto recibido es menor al total a pagar.');
-        return;
-    }
-
-    const customerName = document.getElementById('cliente-nombre') ? document.getElementById('cliente-nombre').value : '';
-    const customerRfc = document.getElementById('cliente-rfc') ? document.getElementById('cliente-rfc').value : '';
-
-    const ventaData = {
-        items: saleCarrito.map(item => ({
-            id: item.id,
-            price: item.precio,
-            quantity: item.cantidad
-        })),
-        customer_name: customerName,
-        customer_rfc: customerRfc,
-        payment_method: metodoPago,
-        amount_received: montoRecibido,
-    };
-
-    try {
-        const response = await fetch('/sales/process', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(ventaData)
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            alert(`✅ Venta ${result.sale_code} procesada exitosamente.\nTotal: $${result.total.toFixed(2)}`);
-            cancelarVenta();
-        } else {
-            alert('❌ Error al procesar la venta: ' + (result.message || 'Error desconocido.'));
-        }
-
-    } catch (error) {
-        console.error('Error al enviar la venta:', error);
-        alert('❌ Error de conexión con el servidor al procesar la venta.');
-    }
-}
-
-function cancelarVenta() {
-    saleCarrito = [];
-    actualizarCarrito();
-
-    const select = document.getElementById('select-producto');
-    if (select) select.selectedIndex = 0;
-
-    const montoRecibido = document.getElementById('monto-recibido');
-    if (montoRecibido) montoRecibido.value = '';
-
-    const clienteNombre = document.getElementById('cliente-nombre');
-    if (clienteNombre) clienteNombre.value = '';
-
-    const clienteRfc = document.getElementById('cliente-rfc');
-    if (clienteRfc) clienteRfc.value = '';
-
-    calcularCambio();
-}
-
-// =======================================================
-// 7. INICIALIZACIÓN
-// =======================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ TPV INICIALIZADO - VERSIÓN ESTABLE');
-    
-    const select = document.getElementById('select-producto');
-    const montoRecibido = document.getElementById('monto-recibido');
-    const metodoPago = document.getElementById('metodo-pago');
-
-    if (select) {
-        // Usar evento con captura para evitar conflictos
-        select.addEventListener('change', seleccionarProducto, true);
-        console.log('🔹 Evento change asignado al select');
-    }
-
-    if (montoRecibido) {
-        // Usar evento input con manejo específico
-        montoRecibido.addEventListener('input', function(e) {
-            console.log('⌨️ Input en monto recibido:', e.target.value);
-            // Solo calcular cambio, NO actualizar carrito
-            calcularCambio();
-        });
-        console.log('🔹 Evento input asignado al monto recibido');
-    }
-
-    if (metodoPago) {
-        metodoPago.addEventListener('change', function() {
-            console.log('🔄 Método de pago cambiado:', this.value);
-            if (this.value === 'tarjeta' && montoRecibido) {
-                montoRecibido.value = '';
+        // Buscar si ya está en el carrito
+        let productoExistente = null;
+        for (let i = 0; i < this.carrito.length; i++) {
+            if (this.carrito[i].id === productoId) {
+                productoExistente = this.carrito[i];
+                break;
             }
-            calcularCambio();
-        });
+        }
+        
+        if (productoExistente) {
+            if (productoExistente.cantidad < productoStock) {
+                productoExistente.cantidad++;
+                console.log('➕ TPV: Cantidad aumentada:', productoExistente.cantidad);
+            } else {
+                alert('No hay suficiente stock');
+                return;
+            }
+        } else {
+            this.carrito.push({
+                id: productoId,
+                nombre: productoNombre,
+                precio: productoPrecio,
+                cantidad: 1,
+                stock: productoStock
+            });
+            console.log('🆕 TPV: Nuevo producto agregado');
+        }
+        
+        select.selectedIndex = 0;
+        this.actualizarVistaCarrito();
+    },
+    
+    // 2. ACTUALIZAR VISTA DEL CARRITO
+    actualizarVistaCarrito: function() {
+        console.log('🔄 TPV: Actualizando carrito, productos:', this.carrito.length);
+        
+        const cuerpo = document.getElementById('carrito-body-tpv');
+        let subtotal = 0;
+        
+        cuerpo.innerHTML = '';
+        
+        if (this.carrito.length === 0) {
+            cuerpo.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No hay productos en el carrito</td></tr>';
+            console.log('🛒 TPV: Carrito vacío');
+        } else {
+            console.log('🎨 TPV: Dibujando productos en tabla');
+            
+            for (let i = 0; i < this.carrito.length; i++) {
+                const producto = this.carrito[i];
+                const subtotalProducto = producto.precio * producto.cantidad;
+                subtotal += subtotalProducto;
+                
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${producto.nombre}</td>
+                    <td>
+                        <input type="number" value="${producto.cantidad}" min="1" max="${producto.stock}" 
+                               onchange="TPV.cambiarCantidad(${producto.id}, this.value)"
+                               style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                    </td>
+                    <td>$${producto.precio.toFixed(2)}</td>
+                    <td>$${subtotalProducto.toFixed(2)}</td>
+                    <td>
+                        <button onclick="TPV.quitarProducto(${producto.id})" 
+                                style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                            ×
+                        </button>
+                    </td>
+                `;
+                cuerpo.appendChild(fila);
+            }
+            
+            console.log('💰 TPV: Subtotal calculado:', subtotal);
+        }
+        
+        this.actualizarTotales(subtotal);
+    },
+    
+    // 3. ACTUALIZAR TOTALES
+    actualizarTotales: function(subtotal) {
+        const impuestos = subtotal * 0.16;
+        const total = subtotal + impuestos;
+        
+        document.getElementById('subtotal-tpv').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('impuestos-tpv').textContent = `$${impuestos.toFixed(2)}`;
+        document.getElementById('total-tpv').textContent = `$${total.toFixed(2)}`;
+        
+        this.calcularCambio();
+    },
+    
+    // 4. CALCULAR CAMBIO
+    calcularCambio: function() {
+        const totalTexto = document.getElementById('total-tpv').textContent.replace('$', '');
+        const total = parseFloat(totalTexto) || 0;
+        const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
+        const metodoPago = document.getElementById('pago-metodo-tpv').value;
+        const btnCobrar = document.getElementById('btn-cobrar-tpv');
+        
+        console.log('💰 TPV Calculando cambio - Total:', total, 'Monto:', montoRecibido);
+        
+        let cambio = 0;
+        let valido = false;
+        
+        if (metodoPago === 'efectivo') {
+            cambio = montoRecibido - total;
+            valido = montoRecibido >= total && total > 0;
+        } else {
+            cambio = 0;
+            valido = total > 0;
+        }
+        
+        document.getElementById('cambio-tpv').textContent = `$${Math.max(0, cambio).toFixed(2)}`;
+        
+        if (valido && this.carrito.length > 0) {
+            btnCobrar.disabled = false;
+            btnCobrar.style.backgroundColor = '#2ecc71';
+            console.log('✅ TPV: Botón cobrar HABILITADO');
+        } else {
+            btnCobrar.disabled = true;
+            btnCobrar.style.backgroundColor = '#cccccc';
+            console.log('❌ TPV: Botón cobrar DESHABILITADO');
+        }
+    },
+    
+    // 5. ASIGNAR CLIENTE
+    asignarCliente: function() {
+        console.log('👤 TPV: Asignando cliente...');
+        
+        const nombre = document.getElementById('cliente-nombre').value.trim();
+        const rfc = document.getElementById('cliente-rfc').value.trim();
+        
+        console.log('👤 TPV Datos cliente:', nombre, rfc);
+        
+        if (!nombre) {
+            alert('Por favor ingresa el nombre del cliente');
+            return;
+        }
+        
+        this.cliente = {
+            nombre: nombre,
+            rfc: rfc || 'No especificado'
+        };
+        
+        document.getElementById('cliente-texto-tpv').innerHTML = `Nombre: ${nombre}<br>RFC: ${rfc || 'No especificado'}`;
+        document.getElementById('cliente-info-tpv').style.display = 'block';
+        
+        alert(`✅ Cliente asignado:\nNombre: ${nombre}\nRFC: ${rfc || 'No especificado'}`);
+        console.log('✅ TPV: Cliente asignado correctamente');
+    },
+    
+    // 6. PROCESAR VENTA
+    procesarVenta: function() {
+        console.log('💰 TPV: PROCESANDO VENTA...');
+        console.log('📦 TPV Carrito:', this.carrito);
+        console.log('🔢 TPV Productos en carrito:', this.carrito.length);
+        
+        if (this.carrito.length === 0) {
+            alert('❌ El carrito está vacío. Agrega productos para cobrar.');
+            console.error('❌ TPV VENTA FALLIDA: Carrito vacío');
+            return;
+        }
+        
+        console.log('✅ TPV: Carrito OK, continuando...');
+        
+        const totalTexto = document.getElementById('total-tpv').textContent.replace('$', '');
+        const total = parseFloat(totalTexto);
+        const metodoPago = document.getElementById('pago-metodo-tpv').value;
+        const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
+        
+        console.log('💳 TPV Datos pago:', { total, metodoPago, montoRecibido });
+        
+        if (metodoPago === 'efectivo' && montoRecibido < total) {
+            alert('El monto recibido es menor al total a pagar.');
+            return;
+        }
+        
+        const datosVenta = {
+            items: this.carrito.map(producto => ({
+                product_id: producto.id,
+                name: producto.nombre,
+                price: producto.precio,
+                quantity: producto.cantidad
+            })),
+            customer_name: this.cliente ? this.cliente.nombre : '',
+            customer_rfc: this.cliente ? this.cliente.rfc : '',
+            payment_method: metodoPago,
+            amount_received: montoRecibido,
+            total: total
+        };
+        
+        console.log('📤 TPV Enviando datos:', datosVenta);
+        
+        try {
+            fetch('/sales/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(datosVenta)
+            })
+            .then(response => response.json())
+            .then(resultado => {
+                console.log('📥 TPV Respuesta servidor:', resultado);
+                
+                if (resultado.success) {
+                    alert(`✅ Venta ${resultado.sale_code} procesada\nTotal: $${resultado.total.toFixed(2)}`);
+                    this.limpiarTodo();
+                } else {
+                    alert('❌ Error: ' + (resultado.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('TPV Error:', error);
+                alert('❌ Error de conexión');
+            });
+        } catch (error) {
+            console.error('TPV Error:', error);
+            alert('❌ Error al procesar la venta');
+        }
+    },
+    
+    // 7. FUNCIONES AUXILIARES
+    cambiarCantidad: function(id, nuevaCantidad) {
+        const cantidad = parseInt(nuevaCantidad);
+        
+        for (let i = 0; i < this.carrito.length; i++) {
+            if (this.carrito[i].id === id) {
+                if (cantidad < 1 || cantidad > this.carrito[i].stock) {
+                    alert(`Cantidad debe ser entre 1 y ${this.carrito[i].stock}`);
+                    this.actualizarVistaCarrito();
+                    return;
+                }
+                this.carrito[i].cantidad = cantidad;
+                break;
+            }
+        }
+        
+        this.actualizarVistaCarrito();
+    },
+    
+    quitarProducto: function(id) {
+        if (confirm('¿Eliminar producto del carrito?')) {
+            this.carrito = this.carrito.filter(producto => producto.id !== id);
+            this.actualizarVistaCarrito();
+        }
+    },
+    
+    limpiarTodo: function() {
+        if (this.carrito.length > 0 && !confirm('¿Cancelar venta y vaciar carrito?')) {
+            return;
+        }
+        
+        this.carrito = [];
+        this.cliente = null;
+        document.getElementById('producto-select-tpv').selectedIndex = 0;
+        document.getElementById('monto-tpv').value = '';
+        document.getElementById('cliente-nombre').value = '';
+        document.getElementById('cliente-rfc').value = '';
+        document.getElementById('cliente-info-tpv').style.display = 'none';
+        
+        this.actualizarVistaCarrito();
+    },
+    
+    // Debug
+    debug: function() {
+        console.log('🐛 TPV DEBUG:');
+        console.log('Carrito:', this.carrito);
+        console.log('Cliente:', this.cliente);
+        console.log('Productos en carrito:', this.carrito.length);
     }
+};
 
-    // Inicializar una sola vez
-    actualizarCarrito();
-    calcularCambio();
-    
-    console.log('🎯 TPV completamente inicializado');
+// Inicializar TPV cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    TPV.init();
 });
+</script>
 
-// =======================================================
-// 8. VERIFICACIÓN DEL HTML
-// =======================================================
-function verificarHTML() {
-    console.log('🔍 VERIFICANDO HTML...');
-    
-    const cuerpo = document.getElementById('cuerpo-carrito');
-    console.log('Cuerpo carrito:', cuerpo);
-    console.log('HTML del cuerpo:', cuerpo ? cuerpo.innerHTML : 'NO ENCONTRADO');
-    console.log('Padre del cuerpo:', cuerpo ? cuerpo.parentElement : 'NO ENCONTRADO');
-    
-    // Verificar la tabla completa
-    const tabla = document.querySelector('.tabla-carrito');
-    console.log('Tabla completa:', tabla);
-    console.log('HTML de la tabla:', tabla ? tabla.outerHTML : 'NO ENCONTRADA');
+<style>
+.btn-cobrar:disabled {
+    background-color: #cccccc !important;
+    cursor: not-allowed;
 }
 
-// Ejecutar verificación después de 2 segundos
-setTimeout(() => {
-    verificarHTML();
-}, 2000);
-</script>
+.tabla-carrito {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-carrito th,
+.tabla-carrito td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-carrito th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.detalle-pago {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 8px 0;
+}
+
+.total-final {
+    border-top: 2px solid #333;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.valor-total {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.btn-listo {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-listo:hover {
+    background-color: #2980b9;
+}
+
+.btn-accion {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.btn-cobrar {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-cancelar {
+    background-color: #e74c3c;
+    color: white;
+}
+</style>
 @endsection

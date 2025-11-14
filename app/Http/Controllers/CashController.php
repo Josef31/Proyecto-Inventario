@@ -7,6 +7,7 @@ use App\Models\CashRegister;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class CashController extends Controller
 {
@@ -14,6 +15,7 @@ class CashController extends Controller
     {
         $openCashRegister = CashRegister::getOpenCashRegister();
         $closedCashRegisters = CashRegister::closed()
+            ->with('user')
             ->orderBy('closed_at', 'desc')
             ->limit(50)
             ->get();
@@ -45,13 +47,13 @@ class CashController extends Controller
 
         // Verificar si ya hay una caja abierta
         if (CashRegister::hasOpenCashRegister()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ya hay una caja abierta'
-            ], 422);
+            return redirect()->route('cash.index')
+                ->with('error', 'Ya hay una caja abierta. Debe cerrar la caja actual antes de abrir una nueva.');
         }
 
         try {
+            DB::beginTransaction();
+
             $cashRegister = CashRegister::create([
                 'user_id' => Auth::id(),
                 'initial_amount' => $request->initial_amount,
@@ -59,17 +61,15 @@ class CashController extends Controller
                 'opened_at' => now()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Caja abierta exitosamente',
-                'cash_register' => $cashRegister
-            ]);
+            DB::commit();
+
+            return redirect()->route('cash.index')
+                ->with('success', 'Caja abierta exitosamente');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al abrir la caja: ' . $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            return redirect()->route('cash.index')
+                ->with('error', 'Error al abrir la caja: ' . $e->getMessage());
         }
     }
 
@@ -85,14 +85,12 @@ class CashController extends Controller
             $cashRegister = CashRegister::getOpenCashRegister();
             
             if (!$cashRegister) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No hay caja abierta'
-                ], 422);
+                return redirect()->route('cash.index')
+                    ->with('error', 'No hay caja abierta para cerrar');
             }
 
-            // Calcular ventas en efectivo del día
-            $cashSales = Sale::whereDate('created_at', today())
+            // Calcular ventas en efectivo desde la apertura de la caja
+            $cashSales = Sale::where('created_at', '>=', $cashRegister->opened_at)
                 ->where('payment_method', 'efectivo')
                 ->where('status', 'completada')
                 ->sum('total');
@@ -112,18 +110,13 @@ class CashController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Caja cerrada exitosamente',
-                'cash_register' => $cashRegister
-            ]);
+            return redirect()->route('cash.index')
+                ->with('success', 'Caja cerrada exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al cerrar la caja: ' . $e->getMessage()
-            ], 500);
+            return redirect()->route('cash.index')
+                ->with('error', 'Error al cerrar la caja: ' . $e->getMessage());
         }
     }
 
@@ -139,7 +132,14 @@ class CashController extends Controller
 
     public function getTodayCashSales()
     {
-        $cashSales = Sale::whereDate('created_at', today())
+        $openCashRegister = CashRegister::getOpenCashRegister();
+        
+        if (!$openCashRegister) {
+            return response()->json(['cash_sales' => 0]);
+        }
+
+        // Calcular ventas desde la apertura de la caja actual
+        $cashSales = Sale::where('created_at', '>=', $openCashRegister->opened_at)
             ->where('payment_method', 'efectivo')
             ->where('status', 'completada')
             ->sum('total');
