@@ -11,31 +11,43 @@ class Sale extends Model
 {
     use HasFactory;
 
+    // La clave primaria es invoice_number, no id
+    protected $primaryKey = 'invoice_number';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'invoice_number',
         'sale_code',
-        'invoice_number', // Nuevo campo
         'user_id',
-        'customer_name',
-        'customer_rfc',
-        'subtotal',
+        'cash_register_id',
+        'customer_id',
+        'payment_currency',
+        'exchange_rate_used',
         'taxes',
-        'total',
-        'payment_method',
+        'payment_method_id',
         'amount_received',
         'change',
         'status',
-        'invoice_printed', // Nuevo campo
+        'invoice_printed',
         'notes'
     ];
 
     protected $casts = [
-        'subtotal' => 'decimal:2',
         'taxes' => 'decimal:2',
-        'total' => 'decimal:2',
         'amount_received' => 'decimal:2',
         'change' => 'decimal:2',
+        'exchange_rate_used' => 'decimal:4',
         'invoice_printed' => 'boolean'
     ];
+
+    /**
+     * Relación: Una venta pertenece a un método de pago
+     */
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
+    }
 
     /**
      * Relación con el usuario (vendedor)

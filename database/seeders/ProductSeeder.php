@@ -12,7 +12,7 @@ class ProductSeeder extends Seeder
         $products = [
             [
                 'name' => 'Tu artículo',
-                'classification' => 'N/A',
+                'id_classification' => 1,
                 'price_buy' => 10.00,
                 'price_sell' => 15.50,
                 'stock_initial' => 0, // Cambiado de stock_actual a stock_initial
@@ -21,7 +21,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name' => 'Cartulina',
-                'classification' => 'Papelería',
+                'id_classification' => 2,
                 'price_buy' => 150.00,
                 'price_sell' => 200.00,
                 'stock_initial' => 0, // Cambiado de stock_actual a stock_initial
@@ -30,7 +30,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name' => 'Palas',
-                'classification' => 'Herramientas',
+                'id_classification' => 5,
                 'price_buy' => 180.00,
                 'price_sell' => 250.00,
                 'stock_initial' => 10, // Cambiado de stock_actual a stock_initial
@@ -39,7 +39,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name' => 'Papel opalina',
-                'classification' => 'Papelería',
+                'id_classification' => 2,
                 'price_buy' => 6.50,
                 'price_sell' => 10.00,
                 'stock_initial' => 32, // Cambiado de stock_actual a stock_initial

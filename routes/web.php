@@ -6,6 +6,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\InvoicesController;
+use App\Http\Controllers\CustomersController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -26,6 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/sales/search', [SalesController::class, 'searchProducts'])->name('sales.search');
     Route::post('/sales/process', [SalesController::class, 'processSale'])->name('sales.process');
     Route::get('/sales/today', [SalesController::class, 'getTodaySales'])->name('sales.today');
+
+    // Rutas para clientes
+    Route::resource('customers', CustomersController::class);
 
     // Rutas para servicios - AGREGAR LA RUTA FALTANTE
     Route::get('/services', [ServicesController::class, 'index'])->name('services.index');

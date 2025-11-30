@@ -15,6 +15,7 @@
             <a href="{{ route('inventory.index') }}">Administracion</a>
             <a href="{{ route('inventory.index') }}">Inventario</a>
             <a href="{{ route('sales.index') }}">Ventas</a>
+            <a href="{{ route('customers.index') }}">Clientes</a>
             <a href="{{ route('services.index') }}">Servicios</a>
             <a href="{{ route('cash.index') }}">Estado de caja</a>
             <a href="{{ route('invoices.index') }}">Facturas</a>

@@ -13,7 +13,7 @@ class Product extends Model
 
     protected $fillable = [
         'name',
-        'classification',
+        'id_classification',
         'price_buy',
         'price_sell',
         'stock_initial', 
@@ -26,6 +26,22 @@ class Product extends Model
         'price_sell' => 'decimal:2',
         'expiration_date' => 'date'
     ];
+
+    /**
+     * Relación: Un producto pertenece a una clasificación
+     */
+    public function classification()
+    {
+        return $this->belongsTo(ProductClassification::class, 'id_classification', 'id');
+    }
+
+    /**
+     * Accessor para obtener el nombre de la clasificación (compatibilidad)
+     */
+    public function getClassificationNameAttribute()
+    {
+        return $this->classification ? $this->classification->name : 'N/A';
+    }
 
     /**
      * Scope para productos con stock bajo

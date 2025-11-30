@@ -12,25 +12,24 @@ class CashRegister extends Model
 
     protected $fillable = [
         'user_id',
-        'initial_amount',
-        'final_amount',
-        'expected_amount',
-        'cash_sales',
-        'difference',
+        'exchange_rate_id',
+        'initial_amount_moneda1',
+        'cash_sales_moneda1',
+        'final_amount_moneda1',
+        'initial_amount_moneda2',
+        'cash_sales_moneda2',
+        'final_amount_moneda2',
         'status',
-        'opened_at',
-        'closed_at',
         'notes'
     ];
 
     protected $casts = [
-        'initial_amount' => 'decimal:2',
-        'final_amount' => 'decimal:2',
-        'expected_amount' => 'decimal:2',
-        'cash_sales' => 'decimal:2',
-        'difference' => 'decimal:2',
-        'opened_at' => 'datetime',
-        'closed_at' => 'datetime'
+        'initial_amount_moneda1' => 'decimal:2',
+        'cash_sales_moneda1' => 'decimal:2',
+        'final_amount_moneda1' => 'decimal:2',
+        'initial_amount_moneda2' => 'decimal:2',
+        'cash_sales_moneda2' => 'decimal:2',
+        'final_amount_moneda2' => 'decimal:2',
     ];
 
     /**
@@ -39,6 +38,14 @@ class CashRegister extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación con el tipo de cambio
+     */
+    public function exchangeRate(): BelongsTo
+    {
+        return $this->belongsTo(ExchangeRate::class);
     }
 
     /**
@@ -62,7 +69,7 @@ class CashRegister extends Model
      */
     public function scopeToday($query)
     {
-        return $query->whereDate('opened_at', today());
+        return $query->whereDate('created_at', today());
     }
 
     /**
@@ -82,20 +89,39 @@ class CashRegister extends Model
     }
 
     /**
-     * Calcular el monto esperado
+     * Calcular el monto esperado en moneda 1
      */
-    public function calculateExpectedAmount()
+    public function calculateExpectedAmountMoneda1()
     {
-        return $this->initial_amount + $this->cash_sales;
+        return $this->initial_amount_moneda1 + $this->cash_sales_moneda1;
     }
 
     /**
-     * Calcular la diferencia
+     * Calcular el monto esperado en moneda 2
      */
-    public function calculateDifference()
+    public function calculateExpectedAmountMoneda2()
     {
-        if ($this->final_amount && $this->expected_amount) {
-            return $this->final_amount - $this->expected_amount;
+        return $this->initial_amount_moneda2 + $this->cash_sales_moneda2;
+    }
+
+    /**
+     * Calcular la diferencia en moneda 1
+     */
+    public function calculateDifferenceMoneda1()
+    {
+        if ($this->final_amount_moneda1 !== null) {
+            return $this->final_amount_moneda1 - $this->calculateExpectedAmountMoneda1();
+        }
+        return 0;
+    }
+
+    /**
+     * Calcular la diferencia en moneda 2
+     */
+    public function calculateDifferenceMoneda2()
+    {
+        if ($this->final_amount_moneda2 !== null) {
+            return $this->final_amount_moneda2 - $this->calculateExpectedAmountMoneda2();
         }
         return 0;
     }

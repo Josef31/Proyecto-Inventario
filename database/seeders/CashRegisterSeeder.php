@@ -5,84 +5,76 @@ namespace Database\Seeders;
 use App\Models\CashRegister;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CashRegisterSeeder extends Seeder
 {
     public function run()
     {
         $user = User::first();
-
-        // Crear algunos cortes de caja del pasado
-        $cashRegisters = [
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 3850.00,
-                'cash_sales' => 2850.00,
-                'expected_amount' => 3850.00,
-                'difference' => 0.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(3)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(3)->setTime(20, 0, 0)
-            ],
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 4200.00,
-                'cash_sales' => 3200.00,
-                'expected_amount' => 4200.00,
-                'difference' => 0.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(2)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(2)->setTime(20, 0, 0)
-            ],
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 3980.00,
-                'cash_sales' => 2980.00,
-                'expected_amount' => 3980.00,
-                'difference' => 0.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(1)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(1)->setTime(20, 0, 0)
-            ],
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 4150.00,
-                'cash_sales' => 3150.00,
-                'expected_amount' => 4150.00,
-                'difference' => 0.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(1)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(1)->setTime(20, 0, 0)
-            ],
-            // Un corte con diferencia positiva
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 4300.00,
-                'cash_sales' => 3200.00,
-                'expected_amount' => 4200.00,
-                'difference' => 100.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(4)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(4)->setTime(20, 0, 0)
-            ],
-            // Un corte con diferencia negativa
-            [
-                'initial_amount' => 1000.00,
-                'final_amount' => 3950.00,
-                'cash_sales' => 3000.00,
-                'expected_amount' => 4000.00,
-                'difference' => -50.00,
-                'status' => 'cerrada',
-                'opened_at' => Carbon::now()->subDays(5)->setTime(8, 0, 0),
-                'closed_at' => Carbon::now()->subDays(5)->setTime(20, 0, 0)
-            ]
-        ];
-
-        foreach ($cashRegisters as $cashData) {
-            CashRegister::create(array_merge($cashData, ['user_id' => $user->id]));
+        
+        // Verificar si existe al menos un exchange_rate
+        $exchangeRate = DB::table('exchange_rates')->first();
+        
+        if (!$exchangeRate) {
+            $this->command->warn('⚠️  No hay tasas de cambio disponibles. Saltando creación de cortes de caja.');
+            return;
         }
 
-        $this->command->info('✅ 6 cortes de caja de ejemplo creados exitosamente.');
+        // Crear algunos cortes de caja de ejemplo
+        $cashRegisters = [
+            [
+                'user_id' => $user->id,
+                'exchange_rate_id' => $exchangeRate->id,
+                'initial_amount_moneda1' => 1000.00,
+                'cash_sales_moneda1' => 2850.00,
+                'final_amount_moneda1' => 3850.00,
+                'initial_amount_moneda2' => 0.00,
+                'cash_sales_moneda2' => 0.00,
+                'final_amount_moneda2' => 0.00,
+                'status' => 'cerrada',
+                'notes' => 'Corte de caja de ejemplo 1',
+            ],
+            [
+                'user_id' => $user->id,
+                'exchange_rate_id' => $exchangeRate->id,
+                'initial_amount_moneda1' => 1000.00,
+                'cash_sales_moneda1' => 3200.00,
+                'final_amount_moneda1' => 4200.00,
+                'initial_amount_moneda2' => 100.00,
+                'cash_sales_moneda2' => 50.00,
+                'final_amount_moneda2' => 150.00,
+                'status' => 'cerrada',
+                'notes' => 'Corte de caja de ejemplo 2',
+            ],
+            [
+                'user_id' => $user->id,
+                'exchange_rate_id' => $exchangeRate->id,
+                'initial_amount_moneda1' => 1000.00,
+                'cash_sales_moneda1' => 2980.00,
+                'final_amount_moneda1' => 3980.00,
+                'initial_amount_moneda2' => 0.00,
+                'cash_sales_moneda2' => 0.00,
+                'final_amount_moneda2' => 0.00,
+                'status' => 'cerrada',
+                'notes' => 'Corte de caja de ejemplo 3',
+            ],
+            [
+                'user_id' => $user->id,
+                'exchange_rate_id' => $exchangeRate->id,
+                'initial_amount_moneda1' => 1500.00,
+                'cash_sales_moneda1' => 0.00,
+                'final_amount_moneda1' => null,
+                'initial_amount_moneda2' => 200.00,
+                'cash_sales_moneda2' => 0.00,
+                'final_amount_moneda2' => null,
+                'status' => 'abierta',
+                'notes' => 'Caja actualmente abierta',
+            ],
+        ];
+
+        DB::table('cash_registers')->insert($cashRegisters);
+
+        $this->command->info('✅ ' . count($cashRegisters) . ' cortes de caja de ejemplo creados exitosamente.');
     }
 }

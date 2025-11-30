@@ -9,8 +9,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('business_services', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->bigIncrements('id');
+            $table->string('name', 255);
             $table->text('description')->nullable();
             $table->decimal('base_cost', 10, 2);
             $table->decimal('customer_rate', 10, 2);

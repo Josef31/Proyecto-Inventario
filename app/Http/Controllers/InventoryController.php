@@ -5,24 +5,24 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Product;
+use App\Models\ProductClassification;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
     public function index()
     {
-        $products = Product::all();
-        // Asumiendo que 'total_investment' es un Accessor en el modelo Product
+        $products = Product::with('classification')->get();
+        $classifications = ProductClassification::all();
         $totalInvested = $products->sum('total_investment');
-
-        return view('inventory.index', compact('products', 'totalInvested'));
+        return view('inventory.index', compact('products', 'classifications', 'totalInvested'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'classification' => 'required|string|max:100',
+            'id_classification' => 'required|integer|exists:products_classification,id',
             'price_buy' => 'required|numeric|min:0',
             'price_sell' => 'required|numeric|min:0',
             'stock_initial' => 'required|integer|min:0',
@@ -46,8 +46,9 @@ class InventoryController extends Controller
     // Muestra el formulario de edición individual
     public function edit($id) 
     {
-        $product = Product::findOrFail($id);
-        return view('inventory.edit', compact('product'));
+        $product = Product::with('classification')->findOrFail($id);
+        $classifications = ProductClassification::all();
+        return view('inventory.edit', compact('product', 'classifications'));
     }
 
     public function update(Request $request, $id)
@@ -56,7 +57,7 @@ class InventoryController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'classification' => 'required|string|max:100',
+            'id_classification' => 'required|integer|exists:products_classification,id',
             'price_buy' => 'required|numeric|min:0',
             'price_sell' => 'required|numeric|min:0',
             'stock_initial' => 'required|integer|min:0',

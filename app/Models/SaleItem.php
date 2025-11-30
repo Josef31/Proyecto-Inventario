@@ -10,18 +10,20 @@ class SaleItem extends Model
 {
     use HasFactory;
 
+    // No tiene columna id, usa clave primaria compuesta
+    public $incrementing = false;
+    protected $primaryKey = ['sale_id', 'product_id'];
+
     protected $fillable = [
         'sale_id',
         'product_id',
-        'product_name',
-        'price',
         'quantity',
-        'subtotal'
+        'price'
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'subtotal' => 'decimal:2'
+        'quantity' => 'integer',
+        'price' => 'decimal:2'
     ];
 
     /**
@@ -29,7 +31,7 @@ class SaleItem extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class);
+        return $this->belongsTo(Sale::class, 'sale_id', 'invoice_number');
     }
 
     /**
@@ -38,5 +40,13 @@ class SaleItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Calcular el subtotal
+     */
+    public function getSubtotalAttribute()
+    {
+        return $this->price * $this->quantity;
     }
 }

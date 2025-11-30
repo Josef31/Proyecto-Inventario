@@ -3,45 +3,45 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up()
     {
         Schema::create('sales', function (Blueprint $table) {
-            $table->id();
-            $table->string('sale_code')->unique(); // Código único de venta
-            $table->string('invoice_number')->unique()->nullable(); // Número de factura único
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Vendedor
-            $table->string('customer_name')->nullable(); // Nombre del cliente
-            $table->string('customer_rfc')->nullable(); // RFC del cliente
-            $table->decimal('subtotal', 10, 2); // Subtotal sin impuestos
-            $table->decimal('taxes', 10, 2); // Impuestos (IVA)
-            $table->decimal('total', 10, 2); // Total a pagar
-            $table->enum('payment_method', ['efectivo', 'tarjeta']); // Método de pago
-            $table->decimal('amount_received', 10, 2)->nullable(); // Monto recibido (para efectivo)
-            $table->decimal('change', 10, 2)->nullable(); // Cambio (para efectivo)
-            $table->enum('status', ['completada', 'cancelada', 'pendiente'])->default('completada');
-            $table->boolean('invoice_printed')->default(false); // Si la factura fue impresa
-            $table->text('notes')->nullable(); // Notas adicionales
+            $table->string('invoice_number', 255)->primary();
+            $table->string('sale_code', 255)->unique();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('cash_register_id');
+            $table->unsignedBigInteger('customer_id');
+            
+            // Moneda de la Venta
+            $table->string('payment_currency', 3)->default('M1');
+            $table->decimal('exchange_rate_used', 10, 4)->default(1.0000);
+            
+            $table->decimal('taxes', 10, 2)->default(0.00);
+            $table->smallInteger('payment_method_id');
+            $table->decimal('amount_received', 10, 2);
+            $table->decimal('change', 10, 2);
+            $table->string('status', 10)->default('completada');
+            $table->boolean('invoice_printed')->default(false);
+            $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('cash_register_id')->references('id')->on('cash_registers');
+            $table->foreign('customer_id')->references('id')->on('customers');
+            $table->foreign('payment_method_id')->references('id')->on('payment_method');
         });
 
-        Schema::create('sale_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sale_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('product_name'); // Nombre del producto al momento de la venta
-            $table->decimal('price', 10, 2); // Precio al momento de la venta
-            $table->integer('quantity'); // Cantidad vendida
-            $table->decimal('subtotal', 10, 2); // Subtotal del item
-            $table->timestamps();
-        });
+        // Restricción CHECK para PostgreSQL
+        DB::statement("ALTER TABLE sales ADD CONSTRAINT sales_status_check CHECK (status IN ('completada', 'cancelada', 'pendiente'))");
+
     }
 
     public function down()
     {
-        Schema::dropIfExists('sale_items');
         Schema::dropIfExists('sales');
     }
 };

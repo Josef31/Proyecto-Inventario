@@ -15,10 +15,17 @@
         </div>
         <div class="seccion-formulario">
             <h3>DETALLES DE CLIENTE</h3>
-            <input type="text" id="cliente-nombre" placeholder="Nombre del Cliente">
-            <input type="text" id="cliente-rfc" placeholder="RFC/Identificación">
+            <label for="cliente-select">Seleccionar Cliente:</label>
+            <select id="cliente-select">
+                <option value="">Cliente General</option>
+                @foreach($customers as $customer)
+                    <option value="{{ $customer->id }}" data-name="{{ $customer->name }}" data-rfc="{{ $customer->rfc }}">
+                        {{ $customer->name }}{{ $customer->rfc ? ' (' . $customer->rfc . ')' : '' }}
+                    </option>
+                @endforeach
+            </select>
             <button class="btn-listo" id="btn-asignar-tpv">Asignar Cliente</button>
-            <div id="cliente-info-tpv" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; display: none;">
+            <div id="cliente-info-tpv" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; display: none !important; color: #333;">
                 <strong>Cliente asignado:</strong>
                 <div id="cliente-texto-tpv"></div>
             </div>
@@ -89,8 +96,9 @@
                 <div class="opciones-pago">
                     <h4>Método de Pago</h4>
                     <select id="pago-metodo-tpv">
-                        <option value="efectivo">Efectivo</option>
-                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                        @foreach($paymentMethods as $method)
+                            <option value="{{ $method->id }}">{{ $method->name }}</option>
+                        @endforeach
                     </select>
                     <input type="number" id="monto-tpv" placeholder="Monto Recibido" min="0" step="0.01">
 
@@ -271,19 +279,25 @@ const TPV = {
         let cambio = 0;
         let valido = false;
         
-        if (metodoPago === 'efectivo') {
-            cambio = montoRecibido - total;
-            valido = montoRecibido >= total && total > 0;
+        // ID 1 = Efectivo, ID 5 = Dólares (también requieren monto)
+        const metodoPagoId = parseInt(metodoPago);
+        if (metodoPagoId === 1 || metodoPagoId === 5) {
+            // Métodos que requieren monto recibido
+            if (montoRecibido >= total) {
+                cambio = montoRecibido - total;
+                valido = true;
+            }
         } else {
-            cambio = 0;
-            valido = total > 0;
+            // Otros métodos de pago (tarjeta, transferencia)
+            valido = true;
         }
         
-        document.getElementById('cambio-tpv').textContent = `$${Math.max(0, cambio).toFixed(2)}`;
+        document.getElementById('cambio-tpv').textContent = `$${cambio.toFixed(2)}`;
         
+        // Habilitar/deshabilitar botón cobrar
         if (valido && this.carrito.length > 0) {
             btnCobrar.disabled = false;
-            btnCobrar.style.backgroundColor = '#2ecc71';
+            btnCobrar.style.backgroundColor = '#28a745';
             console.log('✅ TPV: Botón cobrar HABILITADO');
         } else {
             btnCobrar.disabled = true;
@@ -296,25 +310,30 @@ const TPV = {
     asignarCliente: function() {
         console.log('👤 TPV: Asignando cliente...');
         
-        const nombre = document.getElementById('cliente-nombre').value.trim();
-        const rfc = document.getElementById('cliente-rfc').value.trim();
+        const select = document.getElementById('cliente-select');
+        const opcion = select.options[select.selectedIndex];
         
-        console.log('👤 TPV Datos cliente:', nombre, rfc);
-        
-        if (!nombre) {
-            alert('Por favor ingresa el nombre del cliente');
-            return;
+        if (!opcion.value) {
+            // Cliente General
+            this.cliente = {
+                id: null,
+                nombre: 'Cliente General',
+                rfc: ''
+            };
+        } else {
+            this.cliente = {
+                id: parseInt(opcion.value),
+                nombre: opcion.getAttribute('data-name'),
+                rfc: opcion.getAttribute('data-rfc') || ''
+            };
         }
         
-        this.cliente = {
-            nombre: nombre,
-            rfc: rfc || 'No especificado'
-        };
+        document.getElementById('cliente-texto-tpv').innerHTML = `Nombre: ${this.cliente.nombre}<br>RFC: ${this.cliente.rfc || 'No especificado'}`;
+        const clienteInfoDiv = document.getElementById('cliente-info-tpv');
+        clienteInfoDiv.style.display = 'block';
+        clienteInfoDiv.style.setProperty('display', 'block', 'important');
         
-        document.getElementById('cliente-texto-tpv').innerHTML = `Nombre: ${nombre}<br>RFC: ${rfc || 'No especificado'}`;
-        document.getElementById('cliente-info-tpv').style.display = 'block';
-        
-        alert(`✅ Cliente asignado:\nNombre: ${nombre}\nRFC: ${rfc || 'No especificado'}`);
+        alert(`✅ Cliente asignado:\nNombre: ${this.cliente.nombre}\nRFC: ${this.cliente.rfc || 'No especificado'}`);
         console.log('✅ TPV: Cliente asignado correctamente');
     },
     
@@ -351,14 +370,14 @@ const TPV = {
                 price: producto.precio,
                 quantity: producto.cantidad
             })),
-            customer_name: this.cliente ? this.cliente.nombre : '',
-            customer_rfc: this.cliente ? this.cliente.rfc : '',
-            payment_method: metodoPago,
+            customer_id: this.cliente ? this.cliente.id : null,
+            payment_method_id: parseInt(metodoPago),
+            payment_currency: parseInt(metodoPago) === 5 ? 'USD' : 'Bs', // ID 5 = Dólares
             amount_received: montoRecibido,
             total: total
         };
         
-        console.log('📤 TPV Enviando datos:', datosVenta);
+        console.log('📤 TPV: Enviando datos de venta:', datosVenta);
         
         try {
             fetch('/sales/process', {
@@ -374,15 +393,17 @@ const TPV = {
                 console.log('📥 TPV Respuesta servidor:', resultado);
                 
                 if (resultado.success) {
-                    alert(`✅ Venta ${resultado.sale_code} procesada\nTotal: $${resultado.total.toFixed(2)}`);
+                    alert(`✅ Venta ${resultado.sale_code} procesada correctamente\nFactura: ${resultado.invoice_number}\nCambio: $${resultado.change.toFixed(2)}`);
                     this.limpiarTodo();
+                } else if (resultado.error) {
+                    alert('❌ Error: ' + resultado.error);
                 } else {
                     alert('❌ Error: ' + (resultado.message || 'Error desconocido'));
                 }
             })
             .catch(error => {
-                console.error('TPV Error:', error);
-                alert('❌ Error de conexión');
+                console.error('TPV Error completo:', error);
+                alert('❌ Error de conexión: ' + error.message);
             });
         } catch (error) {
             console.error('TPV Error:', error);

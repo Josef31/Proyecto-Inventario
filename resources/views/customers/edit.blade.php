@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Editar Artículo | ' . $product->name)
+@section('title', 'Editar Cliente | ' . $customer->name)
 
 @section('content')
 
@@ -13,12 +13,12 @@
                 <img class="icono" src="{{ asset('images/perfil.png') }}" alt="Usuario" width="80" height="80">
             </div>
             <p class="nombre-usuario">{{ auth()->user()->name }}</p>
-            <p class="rol-usuario">Administrador</p>
+            <p class="rol-usuario">{{ auth()->user()->role ?? 'Administrador' }}</p>
         </div>
 
         <div class="seccion-acciones-admin">
             <h3>ACCIONES</h3>
-            <a href="{{ route('inventory.index') }}" class="btn-admin-accion">Volver a Inventario</a>
+            <a href="{{ route('customers.index') }}" class="btn-admin-accion">Volver a Clientes</a>
         </div>
     </aside>
 
@@ -50,7 +50,7 @@
                 padding-bottom: 15px;
                 border-bottom: 1px solid #e0e0e0;
             ">
-                Editar Artículo: **{{ $product->name }}**
+                Editar Cliente: **{{ $customer->name }}**
             </h2>
             
             {{-- Mensajes de Sesión y Errores --}}
@@ -72,7 +72,7 @@
             @endif
             {{-- Fin de Mensajes --}}
 
-            <form method="POST" action="{{ route('inventory.update', $product->id) }}">
+            <form method="POST" action="{{ route('customers.update', $customer->id) }}">
                 @csrf
                 @method('PUT') 
 
@@ -86,69 +86,53 @@
                     
                     {{-- Nombre --}}
                     <div style="display: flex; flex-direction: column;">
-                        <label for="nombre" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Nombre del Artículo:</label>
-                        <input type="text" id="nombre" name="name" value="{{ old('name', $product->name) }}" required 
+                        <label for="nombre" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Nombre Completo:</label>
+                        <input type="text" id="nombre" name="name" value="{{ old('name', $customer->name) }}" required 
                             style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
                     </div>
 
-                    {{-- Clasificación --}}
+                    {{-- Email --}}
                     <div style="display: flex; flex-direction: column;">
-                        <label for="clasificacion" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Clasificación / Talla:</label>
-                        <select id="clasificacion" name="id_classification" required
+                        <label for="email" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Correo Electrónico:</label>
+                        <input type="email" id="email" name="email" value="{{ old('email', $customer->email) }}" 
                             style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
-                            <option value="">Seleccione una clasificación</option>
-                            @foreach($classifications as $classification)
-                                <option value="{{ $classification->id }}" {{ old('id_classification', $product->id_classification) == $classification->id ? 'selected' : '' }}>
-                                    {{ $classification->name }}
-                                </option>
-                            @endforeach
+                    </div>
+                    
+                    {{-- Teléfono --}}
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="telefono" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Teléfono:</label>
+                        <input type="text" id="telefono" name="phone" value="{{ old('phone', $customer->phone) }}" 
+                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
+                    </div>
+                    
+                    {{-- RFC --}}
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="rfc" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">RFC:</label>
+                        <input type="text" id="rfc" name="rfc" value="{{ old('rfc', $customer->rfc) }}" 
+                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
+                    </div>
+                    
+                    {{-- Ciudad --}}
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="ciudad" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Ciudad:</label>
+                        <input type="text" id="ciudad" name="city" value="{{ old('city', $customer->city) }}" 
+                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
+                    </div>
+                    
+                    {{-- Estado (Activo/Inactivo) --}}
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="estado" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Estado:</label>
+                        <select id="estado" name="is_active" 
+                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
+                            <option value="1" {{ old('is_active', $customer->is_active) ? 'selected' : '' }}>Activo</option>
+                            <option value="0" {{ !old('is_active', $customer->is_active) ? 'selected' : '' }}>Inactivo</option>
                         </select>
                     </div>
-                    
-                    {{-- Precio Compra --}}
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="precio-compra" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Precio de Compra ($):</label>
-                        <input type="number" id="precio-compra" name="price_buy" min="0" step="0.01" value="{{ old('price_buy', $product->price_buy) }}" required
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
-                    </div>
-                    
-                    {{-- Precio Venta --}}
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="precio-venta" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Precio de Venta (Mínimo requerido $):</label>
-                        <input type="number" id="precio-venta" name="price_sell" min="0" step="0.01" value="{{ old('price_sell', $product->price_sell) }}" required
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
-                    </div>
-                    
-                    {{-- Stock Actual --}}
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="stock-actual" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Stock Actual (Existencias):</label>
-                        <input type="number" id="stock-actual" name="stock_initial" min="0" value="{{ old('stock_initial', $product->stock_initial) }}" required
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
-                    </div>
-                    
-                    {{-- Stock Mínimo --}}
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="stock-minimo" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Stock Mínimo (Alerta):</label>
-                        <input type="number" id="stock-minimo" name="stock_minimum" min="0" value="{{ old('stock_minimum', $product->stock_minimum) }}" required
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
-                    </div>
 
-                    {{-- Vencimiento (Full Width) --}}
-                    <div style="display: flex; flex-direction: column; grid-column: 1 / -1;"> 
-                        <label for="fecha-vencimiento" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Fecha de Vencimiento:</label>
-                        <input 
-                            type="date" 
-                            id="fecha-vencimiento" 
-                            name="expiration_date" 
-                            value="{{ old('expiration_date', $product->expiration_date ? \Carbon\Carbon::parse($product->expiration_date)->format('Y-m-d') : '') }}"
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;"
-                        >
-                    </div>
                 </div>
                 
                 <div style="text-align: right; padding-top: 20px;">
-                    {{-- Botones con estilos inline para asegurar el color y tamaño --}}
-                    <a href="{{ route('inventory.index') }}" 
+                    <a href="{{ route('customers.index') }}" 
                        style="padding: 10px 25px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; background-color: #dc3545; color: white; transition: background-color 0.2s;">
                        Cancelar
                     </a>
@@ -161,30 +145,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-<script>
-    // Tu lógica de JavaScript para sugerir el precio de venta sigue intacta
-    document.addEventListener('DOMContentLoaded', function() {
-        const precioCompraInput = document.getElementById('precio-compra');
-        const precioVentaInput = document.getElementById('precio-venta');
-        
-        if (precioCompraInput && precioVentaInput) {
-            precioCompraInput.addEventListener('input', function() {
-                const precioCompra = parseFloat(this.value);
-                
-                if (isNaN(precioCompra) || precioCompra <= 0) {
-                    return;
-                }
-                
-                const precioVentaMinimo = precioCompra * 1.3;
-                
-                if (precioVentaInput.value === '' || parseFloat(precioVentaInput.value) < precioVentaMinimo) {
-                    precioVentaInput.value = precioVentaMinimo.toFixed(2);
-                }
-            });
-        }
-    });
-</script>
 @endsection

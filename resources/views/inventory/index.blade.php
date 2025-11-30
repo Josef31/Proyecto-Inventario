@@ -21,13 +21,13 @@
                 @csrf
                 
                 <label for="clasificacion">Clasificación / Talla:</label>
-                <select id="clasificacion" name="classification">
-                    <option value="N/A" {{ old('classification') == 'N/A' ? 'selected' : '' }}>N/A</option>
-                    <option value="Calzado" {{ old('classification') == 'Calzado' ? 'selected' : '' }}>Calzado</option>
-                    <option value="Vestido" {{ old('classification') == 'Vestido' ? 'selected' : '' }}>Vestido</option>
-                    <option value="S" {{ old('classification') == 'S' ? 'selected' : '' }}>Talla S</option>
-                    <option value="Papelería" {{ old('classification') == 'Papelería' ? 'selected' : '' }}>Papelería</option>
-                    <option value="Herramientas" {{ old('classification') == 'Herramientas' ? 'selected' : '' }}>Herramientas</option>
+                <select id="clasificacion" name="id_classification" required>
+                    <option value="">Seleccione una clasificación</option>
+                    @foreach($classifications as $classification)
+                        <option value="{{ $classification->id }}" {{ old('id_classification') == $classification->id ? 'selected' : '' }}>
+                            {{ $classification->name }}
+                        </option>
+                    @endforeach
                 </select>
 
                 <label for="nombre">Nombre:</label>
@@ -113,7 +113,7 @@
                     <tr class="{{ $rowClass }}">
                         <td>{{ $product->id }}</td>
                         <td>{{ $product->name }}</td>
-                        <td>{{ $product->classification }}</td>
+                        <td>{{ $product->classification_name }}</td>
                         <td><span class="{{ $stockClass }}">{{ $product->stock_initial }}</span></td>
                         <td>{{ $product->stock_minimum }}</td>
                         <td><span class="{{ $vencimientoClass }}">{{ $fechaTexto }}</span></td>

@@ -18,11 +18,15 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
+            UserRoleSeeder::class,
+            ProductClassificationSeeder::class,
+            PaymentMethodSeeder::class,
+            ExchangeRateSeeder::class,
             UserSeeder::class,
             ProductSeeder::class, // Si también quieres datos de productos
             ServiceSeeder::class,
-            SaleSeeder::class,
-            CashRegisterSeeder::class,
+            //SaleSeeder::class,
+            //CashRegisterSeeder::class,
         ]);
     }
 }

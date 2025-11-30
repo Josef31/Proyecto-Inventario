@@ -1149,3 +1149,5 @@ a {
         font-size: 0.9em;
     }
 }
+/* Hide cliente info until assigned */
+#cliente-info-tpv { display: none !important; }
