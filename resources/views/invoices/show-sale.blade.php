@@ -56,6 +56,14 @@
                         <td>${{ number_format($item->price * $item->quantity, 2) }}</td>
                     </tr>
                 @endforeach
+                @foreach($sale->services as $service)
+                    <tr>
+                        <td>{{ $service->service->name ?? 'Servicio' }} <span style="color: #3498db; font-size: 0.85em;">(Servicio)</span></td>
+                        <td>{{ $service->quantity ?? 1 }}</td>
+                        <td>${{ number_format($service->price, 2) }}</td>
+                        <td>${{ number_format($service->price * ($service->quantity ?? 1), 2) }}</td>
+                    </tr>
+                @endforeach
                 <tr style="background-color: #ecf0f1; font-weight: bold;">
                     <td colspan="3" style="text-align: right;">Subtotal:</td>
                     <td>${{ number_format($sale->subtotal, 2) }}</td>

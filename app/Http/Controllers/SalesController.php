@@ -56,7 +56,7 @@ class SalesController extends Controller
     public function processSale(Request $request)
     {
         $validated = $request->validate([
-            'customer_id' => 'nullable|exists:customers,id',
+            'customer_id' => 'required|exists:customers,id',
             'payment_method_id' => 'required|exists:payment_method,id',
             'payment_currency' => 'required|in:Bs,USD',
             'amount_received' => 'required|numeric|min:0',
@@ -67,7 +67,18 @@ class SalesController extends Controller
             'items.*.price' => 'required_with:items|numeric|min:0',
             'services' => 'nullable|array',
             'services.*.service_id' => 'required_with:services|exists:business_services,id',
+            'services.*.quantity' => 'required_with:services|integer|min:1',
             'services.*.price' => 'required_with:services|numeric|min:0'
+        ], [
+            'customer_id.required' => 'Debe seleccionar un cliente',
+            'customer_id.exists' => 'El cliente seleccionado no existe',
+            'payment_method_id.required' => 'Debe seleccionar un método de pago',
+            'amount_received.required' => 'Debe ingresar el monto recibido',
+            'amount_received.min' => 'El monto recibido debe ser mayor a 0',
+            'items.*.product_id.exists' => 'Uno de los productos seleccionados no existe',
+            'items.*.quantity.min' => 'La cantidad debe ser al menos 1',
+            'services.*.service_id.exists' => 'Uno de los servicios seleccionados no existe',
+            'services.*.quantity.min' => 'La cantidad del servicio debe ser al menos 1',
         ]);
 
         // Validar que haya al menos items o services
@@ -116,7 +127,7 @@ class SalesController extends Controller
             // Sumar servicios
             if (!empty($validated['services'])) {
                 foreach ($validated['services'] as $service) {
-                    $subtotal += $service['price'];
+                    $subtotal += $service['price'] * $service['quantity'];
                 }
             }
             
@@ -164,6 +175,7 @@ class SalesController extends Controller
                     SaleService::create([
                         'sale_id' => $sale->invoice_number,
                         'business_service_id' => $service['service_id'],
+                        'quantity' => $service['quantity'],
                         'price' => $service['price']
                     ]);
                 }

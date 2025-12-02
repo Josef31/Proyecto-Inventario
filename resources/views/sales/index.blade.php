@@ -41,7 +41,8 @@
             <div class="tpv-col-izquierda">
 
                 <div class="buscador-productos">
-                    <select id="producto-select-tpv">
+                    <input type="text" id="producto-search-input" placeholder="Buscar producto..." style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <select id="producto-select-tpv" size="5" style="width: 100%; min-height: 150px;">
                         <option value="" disabled selected>--- Seleccionar Producto ---</option>
                         @foreach ($products as $product)
                         <option
@@ -56,7 +57,8 @@
                 </div>
 
                 <div class="buscador-productos" style="margin-top: 15px;">
-                    <select id="servicio-select-tpv">
+                    <input type="text" id="servicio-search-input" placeholder="Buscar servicio..." style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <select id="servicio-select-tpv" size="5" style="width: 100%; min-height: 150px;">
                         <option value="" disabled selected>--- Seleccionar Servicio ---</option>
                         @foreach ($services as $service)
                         <option
@@ -172,6 +174,31 @@ const TPV = {
         // Pago
         document.getElementById('monto-tpv').addEventListener('input', () => this.calcularCambio());
         document.getElementById('pago-metodo-tpv').addEventListener('change', () => this.calcularCambio());
+        
+        // Búsqueda de productos
+        document.getElementById('producto-search-input').addEventListener('input', (e) => this.filtrarSelect('producto-select-tpv', e.target.value));
+        
+        // Búsqueda de servicios
+        document.getElementById('servicio-search-input').addEventListener('input', (e) => this.filtrarSelect('servicio-select-tpv', e.target.value));
+    },
+    
+    // Filtrar opciones del select basado en búsqueda
+    filtrarSelect: function(selectId, searchTerm) {
+        const select = document.getElementById(selectId);
+        const options = select.getElementsByTagName('option');
+        const searchLower = searchTerm.toLowerCase();
+        
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            if (option.value === '') continue; // Skip placeholder
+            
+            const text = option.textContent.toLowerCase();
+            if (text.includes(searchLower)) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        }
     },
     
     // 1. AGREGAR PRODUCTO AL CARRITO
@@ -207,7 +234,13 @@ const TPV = {
                 productoExistente.cantidad++;
                 console.log('➕ TPV: Cantidad aumentada:', productoExistente.cantidad);
             } else {
-                alert('No hay suficiente stock');
+                Toastify({
+                    text: "⚠️ No hay suficiente stock",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#f39c12"
+                }).showToast();
                 return;
             }
         } else {
@@ -257,8 +290,8 @@ const TPV = {
         }
         
         if (servicioExistente) {
-            alert('Este servicio ya está en el carrito');
-            return;
+            servicioExistente.cantidad++;
+            console.log('➕ TPV: Cantidad de servicio incrementada a', servicioExistente.cantidad);
         } else {
             this.carrito.push({
                 tipo: 'servicio',
@@ -322,7 +355,11 @@ const TPV = {
                 } else { // servicio
                     fila.innerHTML = `
                         <td>${item.nombre} <span style="color: #3498db; font-size: 0.85em;">(Servicio)</span></td>
-                        <td>1</td>
+                        <td>
+                            <input type="number" value="${item.cantidad}" min="1" 
+                                   onchange="TPV.cambiarCantidad(${item.id}, '${item.tipo}', this.value)"
+                                   style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                        </td>
                         <td>$${item.precio.toFixed(2)}</td>
                         <td>$${subtotalItem.toFixed(2)}</td>
                         <td>
@@ -422,7 +459,13 @@ const TPV = {
         clienteInfoDiv.style.display = 'block';
         clienteInfoDiv.style.setProperty('display', 'block', 'important');
         
-        alert(`✅ Cliente asignado:\nNombre: ${this.cliente.nombre}\nRFC: ${this.cliente.rfc || 'No especificado'}`);
+        Toastify({
+            text: `✅ Cliente: ${this.cliente.nombre}`,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#27ae60"
+        }).showToast();
         console.log('✅ TPV: Cliente asignado correctamente');
     },
     
@@ -430,10 +473,27 @@ const TPV = {
     procesarVenta: function() {
         console.log('💰 TPV: PROCESANDO VENTA...');
         console.log('📦 TPV Carrito:', this.carrito);
-        console.log('🔢 TPV Productos en carrito:', this.carrito.length);
+        console.log('🔄 TPV: Iniciando proceso de venta...');
+        
+        // Validar que hay una caja abierta
+        const cajaAbierta = @json($openCashRegister !== null);
+        if (!cajaAbierta) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Caja no abierta',
+                text: 'Debe abrir una caja antes de realizar ventas.',
+                confirmButtonColor: '#3498db'
+            });
+            return;
+        }
         
         if (this.carrito.length === 0) {
-            alert('❌ El carrito está vacío. Agrega productos para cobrar.');
+            Swal.fire({
+                icon: 'info',
+                title: 'Carrito vacío',
+                text: 'Agrega productos o servicios para cobrar.',
+                confirmButtonColor: '#3498db'
+            });
             console.error('❌ TPV VENTA FALLIDA: Carrito vacío');
             return;
         }
@@ -442,13 +502,28 @@ const TPV = {
         
         const totalTexto = document.getElementById('total-tpv').textContent.replace('$', '');
         const total = parseFloat(totalTexto);
-        const metodoPago = document.getElementById('pago-metodo-tpv').value;
+        const metodoPago = document.getElementById('pago-metodo-tpv').value; // Keep original ID
         const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
         
         console.log('💳 TPV Datos pago:', { total, metodoPago, montoRecibido });
         
+        if (!metodoPago) { // Added check for payment method
+            Toastify({
+                text: "⚠️ Selecciona un método de pago",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#f39c12"
+            }).showToast();
+            return;
+        }
         if (metodoPago === 'efectivo' && montoRecibido < total) {
-            alert('El monto recibido es menor al total a pagar.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Monto insuficiente',
+                text: 'El monto recibido es menor al total a pagar.',
+                confirmButtonColor: '#3498db'
+            });
             return;
         }
         
@@ -466,7 +541,8 @@ const TPV = {
             services: servicios.length > 0 ? servicios.map(servicio => ({
                 service_id: servicio.id,
                 name: servicio.nombre,
-                price: servicio.precio
+                price: servicio.precio,
+                quantity: servicio.cantidad
             })) : [],
             customer_id: this.cliente ? this.cliente.id : null,
             payment_method_id: parseInt(metodoPago),
@@ -482,30 +558,105 @@ const TPV = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 body: JSON.stringify(datosVenta)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('📥 TPV Response status:', response.status);
+                
+                // Check if response is ok (status 200-299)
+                if (!response.ok) {
+                    // Try to parse as JSON first
+                    return response.text().then(text => {
+                        console.log('📥 TPV Error response:', text);
+                        
+                        try {
+                            const data = JSON.parse(text);
+                            
+                            // Handle validation errors (422)
+                            if (response.status === 422 && data.errors) {
+                                throw { validation: true, errors: data.errors, message: data.message };
+                            }
+                            
+                            // Handle other errors with error field
+                            if (data.error) {
+                                throw new Error(data.error);
+                            }
+                            
+                            throw new Error(data.message || 'Error en el servidor');
+                        } catch (parseError) {
+                            // If not JSON, throw generic error
+                            if (parseError.validation) throw parseError;
+                            throw new Error('Error en el servidor: ' + text.substring(0, 100));
+                        }
+                    });
+                }
+                return response.json();
+            })
             .then(resultado => {
                 console.log('📥 TPV Respuesta servidor:', resultado);
                 
                 if (resultado.success) {
-                    alert(`✅ Venta ${resultado.sale_code} procesada correctamente\nFactura: ${resultado.invoice_number}\nCambio: $${resultado.change.toFixed(2)}`);
-                    this.limpiarTodo();
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Venta exitosa!',
+                        html: `<strong>Venta:</strong> ${resultado.sale_code}<br><strong>Factura:</strong> ${resultado.invoice_number}<br><strong>Cambio:</strong> $${resultado.change.toFixed(2)}`,
+                        confirmButtonColor: '#27ae60'
+                    });
+                    this.limpiarTodo(true); // Skip confirmation after successful sale
                 } else if (resultado.error) {
-                    alert('❌ Error: ' + resultado.error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: resultado.error,
+                        confirmButtonColor: '#e74c3c'
+                    });
                 } else {
-                    alert('❌ Error: ' + (resultado.message || 'Error desconocido'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: resultado.message || 'Error desconocido',
+                        confirmButtonColor: '#e74c3c'
+                    });
                 }
             })
             .catch(error => {
                 console.error('TPV Error completo:', error);
-                alert('❌ Error de conexión: ' + error.message);
+                
+                // Handle validation errors with friendly messages
+                if (error.validation && error.errors) {
+                    let mensajeError = '⚠️ Por favor corrige lo siguiente:\n\n';
+                    
+                    // Get first error message from each field
+                    for (let campo in error.errors) {
+                        mensajeError += '• ' + error.errors[campo][0] + '\n';
+                    }
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validación',
+                        html: mensajeError.replace(/\n/g, '<br>'),
+                        confirmButtonColor: '#f39c12'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Error desconocido',
+                        confirmButtonColor: '#e74c3c'
+                    });
+                }
             });
         } catch (error) {
             console.error('TPV Error:', error);
-            alert('❌ Error al procesar la venta');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al procesar la venta',
+                confirmButtonColor: '#e74c3c'
+            });
         }
     },
     
@@ -515,11 +666,35 @@ const TPV = {
         
         for (let i = 0; i < this.carrito.length; i++) {
             if (this.carrito[i].id === id && this.carrito[i].tipo === tipo) {
-                if (cantidad < 1 || cantidad > this.carrito[i].stock) {
-                    alert(`Cantidad debe ser entre 1 y ${this.carrito[i].stock}`);
+                // Validar cantidad mínima
+                if (cantidad < 1) {
+                    Toastify({
+                        text: "⚠️ La cantidad debe ser al menos 1",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "#f39c12"
+                    }).showToast();
                     this.actualizarVistaCarrito();
                     return;
                 }
+                
+                // Para productos, validar stock
+                if (tipo === 'producto') {
+                    if (cantidad > this.carrito[i].stock) {
+                        Toastify({
+                            text: `⚠️ Stock disponible: ${this.carrito[i].stock}`,
+                            duration: 3000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#f39c12"
+                        }).showToast();
+                        this.actualizarVistaCarrito();
+                        return;
+                    }
+                }
+                
+                // Actualizar cantidad
                 this.carrito[i].cantidad = cantidad;
                 break;
             }
@@ -530,24 +705,71 @@ const TPV = {
     
     
     quitarItem: function(id, tipo) {
-        if (confirm('¿Eliminar este item del carrito?')) {
-            this.carrito = this.carrito.filter(item => !(item.id === id && item.tipo === tipo));
-            this.actualizarVistaCarrito();
-        }
+        Swal.fire({
+            title: '¿Eliminar item?',
+            text: '¿Deseas eliminar este item del carrito?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.carrito = this.carrito.filter(item => !(item.id === id && item.tipo === tipo));
+                this.actualizarVistaCarrito();
+                Toastify({
+                    text: "🗑️ Item eliminado",
+                    duration: 2000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#e74c3c"
+                }).showToast();
+            }
+        });
     },
     
-    limpiarTodo: function() {
-        if (this.carrito.length > 0 && !confirm('¿Cancelar venta y vaciar carrito?')) {
+    limpiarTodo: function(skipConfirm = false) {
+        if (!skipConfirm && this.carrito.length > 0) {
+            Swal.fire({
+                title: '¿Cancelar venta?',
+                text: '¿Deseas vaciar el carrito y cancelar la venta?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, cancelar',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.ejecutarLimpieza();
+                }
+            });
             return;
         }
         
+        this.ejecutarLimpieza();
+    },
+    
+    ejecutarLimpieza: function() {
         this.carrito = [];
         this.cliente = null;
+        
+        // Reset selects
         document.getElementById('producto-select-tpv').selectedIndex = 0;
+        document.getElementById('servicio-select-tpv').selectedIndex = 0;
+        document.getElementById('cliente-select').selectedIndex = 0;
+        
+        // Reset payment fields
         document.getElementById('monto-tpv').value = '';
-        document.getElementById('cliente-nombre').value = '';
-        document.getElementById('cliente-rfc').value = '';
+        
+        // Hide customer info
         document.getElementById('cliente-info-tpv').style.display = 'none';
+        document.getElementById('cliente-texto-tpv').innerHTML = '';
+        
+        // Re-enable both selects
+        document.getElementById('producto-select-tpv').disabled = false;
+        document.getElementById('servicio-select-tpv').disabled = false;
         
         this.actualizarVistaCarrito();
     },

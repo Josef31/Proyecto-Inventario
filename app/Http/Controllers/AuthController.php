@@ -23,7 +23,7 @@ class AuthController extends Controller
         // Intentar autenticar usando el campo 'name'
         if (Auth::attempt(['name' => $credentials['username'], 'password' => $credentials['password']])) {
             $request->session()->regenerate();
-            return redirect()->route('inventory.index');
+            return redirect()->route('dashboard.index');
         }
 
         // Si falla la autenticación

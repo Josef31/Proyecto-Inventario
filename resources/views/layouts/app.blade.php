@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | Sistema de Administración</title>
     <link rel="stylesheet" href="{{ asset('css/admin-system.css') }}">
+    @vite(['resources/js/app.js'])
     @stack('styles')
 </head>
 <body>

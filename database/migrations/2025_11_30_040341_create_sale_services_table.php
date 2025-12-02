@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('sale_id', 255);
             $table->unsignedBigInteger('business_service_id');
             $table->decimal('price', 10, 2);
+            $table->integer('quantity')->default(1);
             $table->timestamps();
 
             $table->primary(['sale_id', 'business_service_id']);
