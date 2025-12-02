@@ -91,8 +91,14 @@ class DashboardController extends Controller
             ->where('status', 'completada')
             ->count();
 
-        // Total Inventory Value
+        // Total Inventory Value (at selling price)
         $inventoryValue = Product::sum(DB::raw('price_sell * stock_initial'));
+        
+        // Total Inventory Cost (at buying price)
+        $inventoryCost = Product::sum(DB::raw('price_buy * stock_initial'));
+        
+        // Potential Profit in Inventory (without taxes/interests)
+        $inventoryProfit = $inventoryValue - $inventoryCost;
 
         // Cash Register Status
         $openCashRegister = CashRegister::where('status', 'abierta')
@@ -100,9 +106,10 @@ class DashboardController extends Controller
             ->first();
 
         // Recent Sales (last 5)
-        $recentSales = Sale::with('customer')
-            ->where('status', 'completada')
-            ->orderBy('created_at', 'desc')
+        $recentSales = Sale::select('sales.*', 'customers.name as customer_name')
+            ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
+            ->where('sales.status', 'completada')
+            ->orderBy('sales.created_at', 'desc')
             ->limit(5)
             ->get();
 
@@ -129,6 +136,8 @@ class DashboardController extends Controller
             'weekSales',
             'monthSales',
             'inventoryValue',
+            'inventoryCost',
+            'inventoryProfit',
             'openCashRegister',
             'recentSales',
             'recentPurchases',

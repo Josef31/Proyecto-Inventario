@@ -190,7 +190,19 @@
         <div class="metric-card warning">
             <h3>Valor Inventario</h3>
             <div class="value">${{ number_format($inventoryValue, 2) }}</div>
-            <div class="subvalue">Total en stock</div>
+            <div class="subvalue">Precio de venta</div>
+        </div>
+
+        <div class="metric-card">
+            <h3>Costo Inventario</h3>
+            <div class="value">${{ number_format($inventoryCost, 2) }}</div>
+            <div class="subvalue">Precio de compra</div>
+        </div>
+
+        <div class="metric-card success">
+            <h3>Ganancia Potencial</h3>
+            <div class="value">${{ number_format($inventoryProfit, 2) }}</div>
+            <div class="subvalue">Sin impuestos/intereses</div>
         </div>
 
         <div class="metric-card {{ $openCashRegister ? 'success' : 'danger' }}">
@@ -323,7 +335,7 @@
                 <tr>
                     <td>{{ $product->name }}</td>
                     <td><strong>{{ $product->stock_initial }}</strong> unidades</td>
-                    <td>${{ number_format($product->price, 2) }}</td>
+                    <td>${{ number_format($product->price_sell, 2) }}</td>
                     <td>
                         @if($product->stock_initial < 5)
                             <span class="badge badge-danger">Crítico</span>
@@ -357,7 +369,7 @@
                     <tr>
                         <td>{{ $sale->invoice_number }}</td>
                         <td>{{ $sale->customer_name ?? 'N/A' }}</td>
-                        <td>${{ number_format($sale->subtotal + $sale->taxes, 2) }}</td>
+                        <td>${{ number_format($sale->total, 2) }}</td>
                         <td>{{ $sale->created_at->format('d/m H:i') }}</td>
                     </tr>
                     @empty
