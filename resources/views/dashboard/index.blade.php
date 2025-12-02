@@ -398,7 +398,7 @@
                     <tr>
                         <td>{{ $purchase->invoice_number }}</td>
                         <td>{{ $purchase->supplier->name ?? 'N/A' }}</td>
-                        <td>${{ number_format($purchase->total, 2) }}</td>
+                        <td>${{ number_format($purchase->total_amount, 2) }}</td>
                         <td>{{ $purchase->created_at->format('d/m H:i') }}</td>
                     </tr>
                     @empty
