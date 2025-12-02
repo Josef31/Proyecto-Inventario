@@ -4,61 +4,113 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Sale;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Purchase;
 
 class InvoicesController extends Controller
 {
     public function index()
     {
-        $invoices = Sale::with(['user', 'items'])
-            ->completed()
+        // Obtener facturas de ventas
+        $salesInvoices = Sale::with(['user', 'customer'])
+            ->where('status', 'completada')
+            ->whereNotNull('invoice_number')
             ->orderBy('created_at', 'desc')
-            ->get();
-        
+            ->get()
+            ->map(function($sale) {
+                return [
+                    'id' => $sale->invoice_number,
+                    'type' => 'venta',
+                    'invoice_number' => $sale->invoice_number,
+                    'date' => $sale->created_at,
+                    'entity' => $sale->customer ? $sale->customer->name : 'Cliente General',
+                    'total' => $sale->total,
+                    'user' => $sale->user->name,
+                    'payment_method' => $sale->payment_method_id,
+                ];
+            });
+
+        // Obtener facturas de compras
+        $purchaseInvoices = Purchase::with(['supplier', 'user'])
+            ->whereNotNull('invoice_number')
+            ->orderBy('purchase_date', 'desc')
+            ->get()
+            ->map(function($purchase) {
+                return [
+                    'id' => $purchase->invoice_number,
+                    'type' => 'compra',
+                    'invoice_number' => $purchase->invoice_number,
+                    'date' => $purchase->purchase_date,
+                    'entity' => $purchase->supplier->name,
+                    'total' => $purchase->total_amount,
+                    'user' => $purchase->user->name,
+                    'payment_method' => null,
+                ];
+            });
+
+        // Combinar y ordenar por fecha
+        $invoices = $salesInvoices->concat($purchaseInvoices)
+            ->sortByDesc('date')
+            ->values();
+
         $totalInvoices = $invoices->count();
 
         return view('invoices.index', compact('invoices', 'totalInvoices'));
     }
 
-    public function show($id)
+    public function show($invoiceNumber)
     {
-        $invoice = Sale::with(['user', 'items.product'])
-            ->completed()
-            ->findOrFail($id);
+        // Buscar en ventas
+        $sale = Sale::with(['user', 'customer', 'items.product'])
+            ->where('invoice_number', $invoiceNumber)
+            ->first();
 
-        return view('invoices.show', compact('invoice'));
-    }
+        if ($sale) {
+            return view('invoices.show-sale', compact('sale'));
+        }
 
-    public function print($id)
-    {
-        $invoice = Sale::with(['user', 'items.product'])
-            ->completed()
-            ->findOrFail($id);
+        // Buscar en compras
+        $purchase = Purchase::with(['supplier', 'user', 'items.product'])
+            ->where('invoice_number', $invoiceNumber)
+            ->first();
 
-        // Marcar como impresa
-        $invoice->markAsPrinted();
+        if ($purchase) {
+            return view('invoices.show-purchase', compact('purchase'));
+        }
 
-        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
-        
-        return $pdf->download('factura-' . $invoice->invoice_number . '.pdf');
+        abort(404, 'Factura no encontrada');
     }
 
     public function getInvoices()
     {
-        $invoices = Sale::with(['user', 'items'])
-            ->completed()
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($invoices);
+        return $this->index();
     }
 
-    public function getInvoiceDetails($id)
+    public function getInvoiceDetails($invoiceNumber)
     {
-        $invoice = Sale::with(['user', 'items.product'])
-            ->completed()
-            ->findOrFail($id);
+        // Buscar en ventas
+        $sale = Sale::with(['user', 'customer', 'items.product'])
+            ->where('invoice_number', $invoiceNumber)
+            ->first();
 
-        return response()->json($invoice);
+        if ($sale) {
+            return response()->json([
+                'type' => 'venta',
+                'data' => $sale
+            ]);
+        }
+
+        // Buscar en compras
+        $purchase = Purchase::with(['supplier', 'user', 'items.product'])
+            ->where('invoice_number', $invoiceNumber)
+            ->first();
+
+        if ($purchase) {
+            return response()->json([
+                'type' => 'compra',
+                'data' => $purchase
+            ]);
+        }
+
+        return response()->json(['error' => 'Factura no encontrada'], 404);
     }
 }

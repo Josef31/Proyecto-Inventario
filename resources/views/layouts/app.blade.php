@@ -12,13 +12,17 @@
     
     <header class="barra-superior">
         <nav>
-            <a href="{{ route('inventory.index') }}">Administracion</a>
+            <a href="{{ route('dashboard.index') }}">Administracion</a>
             <a href="{{ route('inventory.index') }}">Inventario</a>
             <a href="{{ route('sales.index') }}">Ventas</a>
             <a href="{{ route('customers.index') }}">Clientes</a>
+            <a href="{{ route('suppliers.index') }}">Proveedores</a>
+            <a href="{{ route('purchases.index') }}">Compras</a>
             <a href="{{ route('services.index') }}">Servicios</a>
             <a href="{{ route('cash.index') }}">Estado de caja</a>
             <a href="{{ route('invoices.index') }}">Facturas</a>
+            <a href="{{ route('users.index') }}">Usuarios</a>
+            <a href="{{ route('exchange_rates.index') }}">Tasas de Cambio</a>
             
             @auth
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">

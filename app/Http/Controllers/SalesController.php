@@ -8,6 +8,8 @@ use App\Models\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\SaleService;
+use App\Models\BusinessService;
 use App\Models\CashRegister;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -24,11 +26,17 @@ class SalesController extends Controller
             'stock_initial AS stock'
         )->get();
 
+        $services = BusinessService::select(
+            'id',
+            'name',
+            'customer_rate AS price'
+        )->where('is_active', true)->get();
+
         $paymentMethods = PaymentMethod::all();
         $customers = Customer::where('is_active', true)->orderBy('name')->get();
         $openCashRegister = CashRegister::getOpenCashRegister();
 
-        return view('sales.index', compact('products', 'paymentMethods', 'customers', 'openCashRegister'));
+        return view('sales.index', compact('products', 'services', 'paymentMethods', 'customers', 'openCashRegister'));
     }
 
     // Obtener productos para DataTable
@@ -53,11 +61,21 @@ class SalesController extends Controller
             'payment_currency' => 'required|in:Bs,USD',
             'amount_received' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.price' => 'required|numeric|min:0'
+            'items' => 'nullable|array',
+            'items.*.product_id' => 'required_with:items|exists:products,id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+            'items.*.price' => 'required_with:items|numeric|min:0',
+            'services' => 'nullable|array',
+            'services.*.service_id' => 'required_with:services|exists:business_services,id',
+            'services.*.price' => 'required_with:services|numeric|min:0'
         ]);
+
+        // Validar que haya al menos items o services
+        if (empty($validated['items']) && empty($validated['services'])) {
+            return response()->json([
+                'error' => 'Debe agregar al menos un producto o servicio'
+            ], 400);
+        }
 
         // Verificar si hay caja abierta
         $cashRegister = CashRegister::getOpenCashRegister();
@@ -70,23 +88,36 @@ class SalesController extends Controller
         try {
             DB::beginTransaction();
 
-            // Verificar stock de todos los productos
-            foreach ($validated['items'] as $item) {
-                $product = Product::find($item['product_id']);
-                
-                if (!$product) {
-                    throw new \Exception('Producto no encontrado: ID ' . $item['product_id']);
-                }
+            // Si hay productos, verificar stock
+            if (!empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    $product = Product::find($item['product_id']);
+                    
+                    if (!$product) {
+                        throw new \Exception('Producto no encontrado: ID ' . $item['product_id']);
+                    }
 
-                if ($product->stock_initial < $item['quantity']) {
-                    throw new \Exception('Stock insuficiente para: ' . $product->name);
+                    if ($product->stock_initial < $item['quantity']) {
+                        throw new \Exception('Stock insuficiente para: ' . $product->name);
+                    }
                 }
             }
 
             // Calcular subtotal e impuestos
             $subtotal = 0;
-            foreach ($validated['items'] as $item) {
-                $subtotal += $item['price'] * $item['quantity'];
+            
+            // Sumar productos
+            if (!empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+            }
+            
+            // Sumar servicios
+            if (!empty($validated['services'])) {
+                foreach ($validated['services'] as $service) {
+                    $subtotal += $service['price'];
+                }
             }
             
             $taxes = $subtotal * 0.16; // IVA 16%
@@ -110,19 +141,32 @@ class SalesController extends Controller
                 'invoice_printed' => false
             ]);
 
-            // Crear los items de la venta y actualizar stock
-            foreach ($validated['items'] as $item) {
-                SaleItem::create([
-                    'sale_id' => $sale->invoice_number,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price']
-                ]);
+            // Crear los items de la venta y actualizar stock (si hay productos)
+            if (!empty($validated['items'])) {
+                foreach ($validated['items'] as $item) {
+                    SaleItem::create([
+                        'sale_id' => $sale->invoice_number,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price']
+                    ]);
 
-                // Actualizar stock
-                $product = Product::find($item['product_id']);
-                $product->stock_initial -= $item['quantity'];
-                $product->save();
+                    // Actualizar stock
+                    $product = Product::find($item['product_id']);
+                    $product->stock_initial -= $item['quantity'];
+                    $product->save();
+                }
+            }
+
+            // Crear los servicios de la venta (si hay servicios)
+            if (!empty($validated['services'])) {
+                foreach ($validated['services'] as $service) {
+                    SaleService::create([
+                        'sale_id' => $sale->invoice_number,
+                        'business_service_id' => $service['service_id'],
+                        'price' => $service['price']
+                    ]);
+                }
             }
 
             DB::commit();

@@ -11,7 +11,7 @@
                 <img class="icono" src="{{ asset('images/perfil.png') }}" alt="Usuario" width="80" height="80">
             </div>
             <p class="nombre-usuario">{{ auth()->user()->name }}</p> 
-            <p class="rol-usuario">{{ auth()->user()->role ?? 'Administrador' }}</p>
+            <p class="rol-usuario">{{ auth()->user()->role ? auth()->user()->role->name : 'Administrador' }}</p>
         </div>
 
         <div class="seccion-formulario">

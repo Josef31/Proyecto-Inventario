@@ -31,32 +31,28 @@ class CashController extends Controller
         $cashSalesTodayUsd = 0;
         
         if ($openCashRegister) {
-            // Ventas en Bolívares (payment_method_id = 1 y payment_currency = 'Bs')
-            $salesBs = Sale::where('created_at', '>=', $openCashRegister->created_at)
-                ->where('payment_method_id', 1) // Efectivo
-                ->where('payment_currency', 'Bs')
+            // Ventas en Bolívares (todos los métodos de pago EXCEPTO Dólares)
+            $salesBs = Sale::with(['items', 'services'])
+                ->where('created_at', '>=', $openCashRegister->created_at)
+                ->where('payment_method_id', '!=', 1) // Todos excepto Dólares
                 ->where('status', 'completada')
-                ->pluck('invoice_number');
+                ->get();
 
             if ($salesBs->isNotEmpty()) {
-                $items = \App\Models\SaleItem::whereIn('sale_id', $salesBs)->get();
-                $cashSalesTodayBs = $items->sum(function($item) {
-                    return $item->price * $item->quantity;
-                });
+                // Usar el accessor total del modelo Sale que incluye IVA
+                $cashSalesTodayBs = $salesBs->sum('total');
             }
 
-            // Ventas en Dólares (payment_method_id = 1 y payment_currency = 'USD')
-            $salesUsd = Sale::where('created_at', '>=', $openCashRegister->created_at)
-                ->where('payment_method_id', 1) // Efectivo
-                ->where('payment_currency', 'USD')
+            // Ventas en Dólares (payment_method_id = 1)
+            $salesUsd = Sale::with(['items', 'services'])
+                ->where('created_at', '>=', $openCashRegister->created_at)
+                ->where('payment_method_id', 1) // Dólares
                 ->where('status', 'completada')
-                ->pluck('invoice_number');
+                ->get();
 
             if ($salesUsd->isNotEmpty()) {
-                $items = \App\Models\SaleItem::whereIn('sale_id', $salesUsd)->get();
-                $cashSalesTodayUsd = $items->sum(function($item) {
-                    return $item->price * $item->quantity;
-                });
+                // Usar el accessor total del modelo Sale que incluye IVA
+                $cashSalesTodayUsd = $salesUsd->sum('total');
             }
         }
 
@@ -128,32 +124,38 @@ class CashController extends Controller
             }
 
             // Calcular ventas en efectivo desde la apertura de la caja
+            // Ventas en Bolívares (todos los métodos EXCEPTO Dólares)
             $salesBs = Sale::where('created_at', '>=', $cashRegister->created_at)
-                ->where('payment_method_id', 1) // Efectivo
-                ->where('payment_currency', 'Bs')
+                ->where('payment_method_id', '!=', 1) // Todos excepto Dólares
                 ->where('status', 'completada')
                 ->pluck('invoice_number');
 
             $cashSalesBs = 0;
             if ($salesBs->isNotEmpty()) {
                 $items = \App\Models\SaleItem::whereIn('sale_id', $salesBs)->get();
-                $cashSalesBs = $items->sum(function($item) {
+                $itemsTotal = $items->sum(function($item) {
                     return $item->price * $item->quantity;
                 });
+                $services = \App\Models\SaleService::whereIn('sale_id', $salesBs)->get();
+                $servicesTotal = $services->sum('price');
+                $cashSalesBs = $itemsTotal + $servicesTotal;
             }
 
+            // Ventas en Dólares (payment_method_id = 1)
             $salesUsd = Sale::where('created_at', '>=', $cashRegister->created_at)
-                ->where('payment_method_id', 1) // Efectivo
-                ->where('payment_currency', 'USD')
+                ->where('payment_method_id', 1) // Dólares
                 ->where('status', 'completada')
                 ->pluck('invoice_number');
 
             $cashSalesUsd = 0;
             if ($salesUsd->isNotEmpty()) {
                 $items = \App\Models\SaleItem::whereIn('sale_id', $salesUsd)->get();
-                $cashSalesUsd = $items->sum(function($item) {
+                $itemsTotal = $items->sum(function($item) {
                     return $item->price * $item->quantity;
                 });
+                $services = \App\Models\SaleService::whereIn('sale_id', $salesUsd)->get();
+                $servicesTotal = $services->sum('price');
+                $cashSalesUsd = $itemsTotal + $servicesTotal;
             }
 
             // Actualizar la caja
@@ -197,32 +199,38 @@ class CashController extends Controller
         }
 
         // Calcular ventas desde la apertura de la caja actual
+        // Ventas en Bolívares (todos los métodos EXCEPTO Dólares)
         $salesBs = Sale::where('created_at', '>=', $openCashRegister->created_at)
-            ->where('payment_method_id', 1)
-            ->where('payment_currency', 'Bs')
+            ->where('payment_method_id', '!=', 1) // Todos excepto Dólares
             ->where('status', 'completada')
             ->pluck('invoice_number');
 
         $cashSalesBs = 0;
         if ($salesBs->isNotEmpty()) {
             $items = \App\Models\SaleItem::whereIn('sale_id', $salesBs)->get();
-            $cashSalesBs = $items->sum(function($item) {
+            $itemsTotal = $items->sum(function($item) {
                 return $item->price * $item->quantity;
             });
+            $services = \App\Models\SaleService::whereIn('sale_id', $salesBs)->get();
+            $servicesTotal = $services->sum('price');
+            $cashSalesBs = $itemsTotal + $servicesTotal;
         }
 
+        // Ventas en Dólares (payment_method_id = 1)
         $salesUsd = Sale::where('created_at', '>=', $openCashRegister->created_at)
-            ->where('payment_method_id', 1)
-            ->where('payment_currency', 'USD')
+            ->where('payment_method_id', 1) // Dólares
             ->where('status', 'completada')
             ->pluck('invoice_number');
 
         $cashSalesUsd = 0;
         if ($salesUsd->isNotEmpty()) {
             $items = \App\Models\SaleItem::whereIn('sale_id', $salesUsd)->get();
-            $cashSalesUsd = $items->sum(function($item) {
+            $itemsTotal = $items->sum(function($item) {
                 return $item->price * $item->quantity;
             });
+            $services = \App\Models\SaleService::whereIn('sale_id', $salesUsd)->get();
+            $servicesTotal = $services->sum('price');
+            $cashSalesUsd = $itemsTotal + $servicesTotal;
         }
 
         return response()->json([

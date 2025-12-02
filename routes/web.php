@@ -7,6 +7,11 @@ use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\PurchasesController;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\ExchangeRatesController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -14,6 +19,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    
     // Rutas de Inventario
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/inventory/store', [InventoryController::class, 'store'])->name('inventory.store');
@@ -30,6 +38,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas para clientes
     Route::resource('customers', CustomersController::class);
+
+    // Rutas para proveedores
+    Route::resource('suppliers', SuppliersController::class);
+
+    // Rutas para compras
+    Route::resource('purchases', PurchasesController::class)->except(['create', 'edit', 'update']);
+    Route::get('/purchases/search', [PurchasesController::class, 'searchProducts'])->name('purchases.search');
 
     // Rutas para servicios - AGREGAR LA RUTA FALTANTE
     Route::get('/services', [ServicesController::class, 'index'])->name('services.index');
@@ -52,4 +67,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
     Route::get('/invoices/{id}/details', [InvoicesController::class, 'getInvoiceDetails'])->name('invoices.details');
     Route::get('/invoices/get/all', [InvoicesController::class, 'getInvoices'])->name('invoices.get');
+
+    // Rutas para usuarios
+    Route::resource('users', UsersController::class)->except(['show', 'create']);
+
+    // Rutas de Tasas de Cambio
+    Route::resource('exchange_rates', ExchangeRatesController::class)->except(['show', 'create']);
 });

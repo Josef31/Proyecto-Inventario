@@ -11,7 +11,7 @@
                 <img class="icono" src="{{ asset('images/perfil.png') }}" alt="Usuario" width="80" height="80">
             </div>
             <p class="nombre-usuario">{{ auth()->user()->name }}</p>
-            <p class="rol-usuario">Administrador</p>
+            <p class="rol-usuario">{{ auth()->user()->role ? auth()->user()->role->name : 'Administrador' }}</p>
         </div>
         <div class="seccion-formulario">
             <h3>DETALLES DE CLIENTE</h3>
@@ -50,6 +50,20 @@
                             data-price="{{ $product['price'] }}"
                             data-stock="{{ $product['stock'] }}">
                             ID: {{ $product['id'] }} - {{ $product['name'] }} (${{ $product['price'] }}) (Stock: {{ $product['stock'] }})
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="buscador-productos" style="margin-top: 15px;">
+                    <select id="servicio-select-tpv">
+                        <option value="" disabled selected>--- Seleccionar Servicio ---</option>
+                        @foreach ($services as $service)
+                        <option
+                            value="{{ $service['id'] }}"
+                            data-name="{{ $service['name'] }}"
+                            data-price="{{ $service['price'] }}">
+                            ID: {{ $service['id'] }} - {{ $service['name'] }} (${{ $service['price'] }})
                         </option>
                         @endforeach
                     </select>
@@ -145,6 +159,9 @@ const TPV = {
         // Productos
         document.getElementById('producto-select-tpv').addEventListener('change', () => this.agregarProducto());
         
+        // Servicios
+        document.getElementById('servicio-select-tpv').addEventListener('change', () => this.agregarServicio());
+        
         // Cliente
         document.getElementById('btn-asignar-tpv').addEventListener('click', () => this.asignarCliente());
         
@@ -179,7 +196,7 @@ const TPV = {
         // Buscar si ya está en el carrito
         let productoExistente = null;
         for (let i = 0; i < this.carrito.length; i++) {
-            if (this.carrito[i].id === productoId) {
+            if (this.carrito[i].tipo === 'producto' && this.carrito[i].id === productoId) {
                 productoExistente = this.carrito[i];
                 break;
             }
@@ -195,6 +212,7 @@ const TPV = {
             }
         } else {
             this.carrito.push({
+                tipo: 'producto',
                 id: productoId,
                 nombre: productoNombre,
                 precio: productoPrecio,
@@ -204,13 +222,64 @@ const TPV = {
             console.log('🆕 TPV: Nuevo producto agregado');
         }
         
+        // Deshabilitar servicios si hay productos
+        document.getElementById('servicio-select-tpv').disabled = true;
+        
+        select.selectedIndex = 0;
+        this.actualizarVistaCarrito();
+    },
+    
+    // 1B. AGREGAR SERVICIO AL CARRITO
+    agregarServicio: function() {
+        console.log('🛍️ TPV: Agregando servicio...');
+        
+        const select = document.getElementById('servicio-select-tpv');
+        const opcion = select.options[select.selectedIndex];
+        
+        if (!opcion.value) {
+            console.log('❌ TPV: No se seleccionó servicio');
+            return;
+        }
+        
+        const servicioId = parseInt(opcion.value);
+        const servicioNombre = opcion.getAttribute('data-name');
+        const servicioPrecio = parseFloat(opcion.getAttribute('data-price'));
+        
+        console.log('🔧 TPV Servicio:', servicioNombre, servicioPrecio);
+        
+        // Buscar si ya está en el carrito
+        let servicioExistente = null;
+        for (let i = 0; i < this.carrito.length; i++) {
+            if (this.carrito[i].tipo === 'servicio' && this.carrito[i].id === servicioId) {
+                servicioExistente = this.carrito[i];
+                break;
+            }
+        }
+        
+        if (servicioExistente) {
+            alert('Este servicio ya está en el carrito');
+            return;
+        } else {
+            this.carrito.push({
+                tipo: 'servicio',
+                id: servicioId,
+                nombre: servicioNombre,
+                precio: servicioPrecio,
+                cantidad: 1
+            });
+            console.log('🆕 TPV: Nuevo servicio agregado');
+        }
+        
+        // Deshabilitar productos si hay servicios
+        document.getElementById('producto-select-tpv').disabled = true;
+        
         select.selectedIndex = 0;
         this.actualizarVistaCarrito();
     },
     
     // 2. ACTUALIZAR VISTA DEL CARRITO
     actualizarVistaCarrito: function() {
-        console.log('🔄 TPV: Actualizando carrito, productos:', this.carrito.length);
+        console.log('🔄 TPV: Actualizando carrito, items:', this.carrito.length);
         
         const cuerpo = document.getElementById('carrito-body-tpv');
         let subtotal = 0;
@@ -218,33 +287,53 @@ const TPV = {
         cuerpo.innerHTML = '';
         
         if (this.carrito.length === 0) {
-            cuerpo.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No hay productos en el carrito</td></tr>';
+            cuerpo.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No hay productos/servicios en el carrito</td></tr>';
             console.log('🛒 TPV: Carrito vacío');
+            // Habilitar ambos selectores cuando el carrito está vacío
+            document.getElementById('producto-select-tpv').disabled = false;
+            document.getElementById('servicio-select-tpv').disabled = false;
         } else {
-            console.log('🎨 TPV: Dibujando productos en tabla');
+            console.log('🎨 TPV: Dibujando items en tabla');
             
             for (let i = 0; i < this.carrito.length; i++) {
-                const producto = this.carrito[i];
-                const subtotalProducto = producto.precio * producto.cantidad;
-                subtotal += subtotalProducto;
+                const item = this.carrito[i];
+                const subtotalItem = item.precio * item.cantidad;
+                subtotal += subtotalItem;
                 
                 const fila = document.createElement('tr');
-                fila.innerHTML = `
-                    <td>${producto.nombre}</td>
-                    <td>
-                        <input type="number" value="${producto.cantidad}" min="1" max="${producto.stock}" 
-                               onchange="TPV.cambiarCantidad(${producto.id}, this.value)"
-                               style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
-                    </td>
-                    <td>$${producto.precio.toFixed(2)}</td>
-                    <td>$${subtotalProducto.toFixed(2)}</td>
-                    <td>
-                        <button onclick="TPV.quitarProducto(${producto.id})" 
-                                style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
-                            ×
-                        </button>
-                    </td>
-                `;
+                
+                if (item.tipo === 'producto') {
+                    fila.innerHTML = `
+                        <td>${item.nombre}</td>
+                        <td>
+                            <input type="number" value="${item.cantidad}" min="1" max="${item.stock}" 
+                                   onchange="TPV.cambiarCantidad(${item.id}, '${item.tipo}', this.value)"
+                                   style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                        </td>
+                        <td>$${item.precio.toFixed(2)}</td>
+                        <td>$${subtotalItem.toFixed(2)}</td>
+                        <td>
+                            <button onclick="TPV.quitarItem(${item.id}, '${item.tipo}')" 
+                                    style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                                ×
+                            </button>
+                        </td>
+                    `;
+                } else { // servicio
+                    fila.innerHTML = `
+                        <td>${item.nombre} <span style="color: #3498db; font-size: 0.85em;">(Servicio)</span></td>
+                        <td>1</td>
+                        <td>$${item.precio.toFixed(2)}</td>
+                        <td>$${subtotalItem.toFixed(2)}</td>
+                        <td>
+                            <button onclick="TPV.quitarItem(${item.id}, '${item.tipo}')" 
+                                    style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                                ×
+                            </button>
+                        </td>
+                    `;
+                }
+                
                 cuerpo.appendChild(fila);
             }
             
@@ -363,16 +452,25 @@ const TPV = {
             return;
         }
         
+        // Separar productos y servicios
+        const productos = this.carrito.filter(item => item.tipo === 'producto');
+        const servicios = this.carrito.filter(item => item.tipo === 'servicio');
+        
         const datosVenta = {
-            items: this.carrito.map(producto => ({
+            items: productos.length > 0 ? productos.map(producto => ({
                 product_id: producto.id,
                 name: producto.nombre,
                 price: producto.precio,
                 quantity: producto.cantidad
-            })),
+            })) : [],
+            services: servicios.length > 0 ? servicios.map(servicio => ({
+                service_id: servicio.id,
+                name: servicio.nombre,
+                price: servicio.precio
+            })) : [],
             customer_id: this.cliente ? this.cliente.id : null,
             payment_method_id: parseInt(metodoPago),
-            payment_currency: parseInt(metodoPago) === 5 ? 'USD' : 'Bs', // ID 5 = Dólares
+            payment_currency: parseInt(metodoPago) === 1 ? 'USD' : 'Bs', // ID 1 = Dólares
             amount_received: montoRecibido,
             total: total
         };
@@ -412,11 +510,11 @@ const TPV = {
     },
     
     // 7. FUNCIONES AUXILIARES
-    cambiarCantidad: function(id, nuevaCantidad) {
+    cambiarCantidad: function(id, tipo, nuevaCantidad) {
         const cantidad = parseInt(nuevaCantidad);
         
         for (let i = 0; i < this.carrito.length; i++) {
-            if (this.carrito[i].id === id) {
+            if (this.carrito[i].id === id && this.carrito[i].tipo === tipo) {
                 if (cantidad < 1 || cantidad > this.carrito[i].stock) {
                     alert(`Cantidad debe ser entre 1 y ${this.carrito[i].stock}`);
                     this.actualizarVistaCarrito();
@@ -430,9 +528,10 @@ const TPV = {
         this.actualizarVistaCarrito();
     },
     
-    quitarProducto: function(id) {
-        if (confirm('¿Eliminar producto del carrito?')) {
-            this.carrito = this.carrito.filter(producto => producto.id !== id);
+    
+    quitarItem: function(id, tipo) {
+        if (confirm('¿Eliminar este item del carrito?')) {
+            this.carrito = this.carrito.filter(item => !(item.id === id && item.tipo === tipo));
             this.actualizarVistaCarrito();
         }
     },

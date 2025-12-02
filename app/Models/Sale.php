@@ -62,7 +62,23 @@ class Sale extends Model
      */
     public function items(): HasMany
     {
-        return $this->hasMany(SaleItem::class);
+        return $this->hasMany(SaleItem::class, 'sale_id', 'invoice_number');
+    }
+
+    /**
+     * Relación con el cliente
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Relación con los servicios de la venta
+     */
+    public function services(): HasMany
+    {
+        return $this->hasMany(SaleService::class, 'sale_id', 'invoice_number');
     }
 
     /**
@@ -122,6 +138,28 @@ class Sale extends Model
     public function getCustomerNameFormattedAttribute()
     {
         return $this->customer_name ?: 'Cliente General';
+    }
+
+    /**
+     * Calcular el subtotal desde los items y servicios
+     */
+    public function getSubtotalAttribute()
+    {
+        $itemsTotal = $this->items->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+        
+        $servicesTotal = $this->services->sum('price');
+        
+        return $itemsTotal + $servicesTotal;
+    }
+
+    /**
+     * Calcular el total (subtotal + taxes)
+     */
+    public function getTotalAttribute()
+    {
+        return $this->subtotal + $this->taxes;
     }
 
     /**

@@ -14,6 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'id_role',
     ];
 
     protected $hidden = [
@@ -27,5 +28,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Relación con el rol del usuario
+     */
+    public function role()
+    {
+        return $this->belongsTo(UserRole::class, 'id_role');
+    }
+
+    /**
+     * Verificar si el usuario es admin
+     */
+    public function isAdmin()
+    {
+        return $this->id === 1;
     }
 }
