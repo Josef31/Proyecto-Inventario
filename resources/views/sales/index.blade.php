@@ -15,15 +15,8 @@
         </div>
         <div class="seccion-formulario">
             <h3>DETALLES DE CLIENTE</h3>
-            <label for="cliente-select">Seleccionar Cliente:</label>
-            <select id="cliente-select">
-                <option value="">Cliente General</option>
-                @foreach($customers as $customer)
-                    <option value="{{ $customer->id }}" data-name="{{ $customer->name }}" data-rfc="{{ $customer->rfc }}">
-                        {{ $customer->name }}{{ $customer->rfc ? ' (' . $customer->rfc . ')' : '' }}
-                    </option>
-                @endforeach
-            </select>
+            <label for="cliente-rfc-input">RFC del Cliente:</label>
+            <input type="text" id="cliente-rfc-input" placeholder="Ingrese RFC del cliente" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
             <button class="btn-listo" id="btn-asignar-tpv">Asignar Cliente</button>
             <div id="cliente-info-tpv" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; display: none !important; color: #333;">
                 <strong>Cliente asignado:</strong>
@@ -143,6 +136,7 @@ const TPV = {
     // Variables privadas
     carrito: [],
     cliente: null,
+    customersData: @json($customers), // Datos de clientes para búsqueda local
     exchangeRate: {{ $exchangeRate }}, // Tasa de cambio actual
     currentCurrency: 'USD', // Moneda actual (por defecto USD)
     
@@ -488,27 +482,45 @@ const TPV = {
     },
     
     // 5. ASIGNAR CLIENTE
+    // 5. ASIGNAR CLIENTE
     asignarCliente: function() {
         console.log('👤 TPV: Asignando cliente...');
         
-        const select = document.getElementById('cliente-select');
-        const opcion = select.options[select.selectedIndex];
+        const rfcInput = document.getElementById('cliente-rfc-input').value.trim();
         
-        if (!opcion.value) {
-            // Cliente General
+        if (!rfcInput) {
+            // Cliente General (si no se escribe nada)
             this.cliente = {
                 id: null,
                 nombre: 'Cliente General',
                 rfc: ''
             };
-        } else {
-            this.cliente = {
-                id: parseInt(opcion.value),
-                nombre: opcion.getAttribute('data-name'),
-                rfc: opcion.getAttribute('data-rfc') || ''
-            };
+            this.mostrarClienteAsignado();
+            return;
         }
         
+        // Buscar cliente por RFC
+        const clienteEncontrado = this.customersData.find(c => c.rfc && c.rfc.toLowerCase() === rfcInput.toLowerCase());
+        
+        if (clienteEncontrado) {
+            this.cliente = {
+                id: clienteEncontrado.id,
+                nombre: clienteEncontrado.name,
+                rfc: clienteEncontrado.rfc
+            };
+            this.mostrarClienteAsignado();
+        } else {
+            // Cliente no encontrado
+            Swal.fire({
+                icon: 'error',
+                title: 'Cliente no encontrado',
+                text: `No se encontró ningún cliente con el RFC: ${rfcInput}`,
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    },
+    
+    mostrarClienteAsignado: function() {
         document.getElementById('cliente-texto-tpv').innerHTML = `Nombre: ${this.cliente.nombre}<br>RFC: ${this.cliente.rfc || 'No especificado'}`;
         const clienteInfoDiv = document.getElementById('cliente-info-tpv');
         clienteInfoDiv.style.display = 'block';
@@ -813,7 +825,7 @@ const TPV = {
         // Reset selects
         document.getElementById('producto-select-tpv').selectedIndex = 0;
         document.getElementById('servicio-select-tpv').selectedIndex = 0;
-        document.getElementById('cliente-select').selectedIndex = 0;
+        document.getElementById('cliente-rfc-input').value = '';
         
         // Reset payment fields
         document.getElementById('monto-tpv').value = '';
