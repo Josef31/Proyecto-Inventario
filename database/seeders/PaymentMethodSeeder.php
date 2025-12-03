@@ -13,14 +13,13 @@ class PaymentMethodSeeder extends Seeder
      */
     public function run(): void
     {
-        $paymentMethods = [
-            ['id' => 1, 'name' => 'Dólares'],
-            ['id' => 2, 'name' => 'Efectivo'],
-            ['id' => 3, 'name' => 'Tarjeta Débito'],
-            ['id' => 4, 'name' => 'Tarjeta Crédito'],
-            ['id' => 5, 'name' => 'Transferencia'],
-        ];
-
-        DB::table('payment_method')->insert($paymentMethods);
+        DB::table('payment_method')->insert([
+            ['id' => 1, 'name' => 'Dólares', 'currency' => 'USD'],
+            ['id' => 2, 'name' => 'Bolívares', 'currency' => 'Bs'],
+            ['id' => 3, 'name' => 'Transferencia Bs', 'currency' => 'Bs'],
+            ['id' => 4, 'name' => 'Pago Móvil Bs', 'currency' => 'Bs'],
+            ['id' => 5, 'name' => 'Tarjeta Débito', 'currency' => 'USD'],
+            ['id' => 6, 'name' => 'Tarjeta Crédito', 'currency' => 'USD'],
+        ]);
     }
 }

@@ -32,11 +32,15 @@ class SalesController extends Controller
             'customer_rate AS price'
         )->where('is_active', true)->get();
 
-        $paymentMethods = PaymentMethod::all();
+        $paymentMethods = PaymentMethod::select('id', 'name', 'currency')->get();
         $customers = Customer::where('is_active', true)->orderBy('name')->get();
         $openCashRegister = CashRegister::getOpenCashRegister();
+        
+        // Get latest exchange rate
+        $latestExchangeRate = \App\Models\ExchangeRate::orderBy('date', 'desc')->first();
+        $exchangeRate = $latestExchangeRate ? $latestExchangeRate->rate : 1;
 
-        return view('sales.index', compact('products', 'services', 'paymentMethods', 'customers', 'openCashRegister'));
+        return view('sales.index', compact('products', 'services', 'paymentMethods', 'customers', 'openCashRegister', 'exchangeRate'));
     }
 
     // Obtener productos para DataTable

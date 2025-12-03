@@ -113,7 +113,7 @@
                     <h4>Método de Pago</h4>
                     <select id="pago-metodo-tpv">
                         @foreach($paymentMethods as $method)
-                            <option value="{{ $method->id }}">{{ $method->name }}</option>
+                            <option value="{{ $method->id }}" data-currency="{{ $method->currency }}">{{ $method->name }}</option>
                         @endforeach
                     </select>
                     <input type="number" id="monto-tpv" placeholder="Monto Recibido" min="0" step="0.01">
@@ -143,10 +143,31 @@ const TPV = {
     // Variables privadas
     carrito: [],
     cliente: null,
+    exchangeRate: {{ $exchangeRate }}, // Tasa de cambio actual
+    currentCurrency: 'USD', // Moneda actual (por defecto USD)
+    
+    // Funciones de conversión de moneda
+    convertPrice: function(priceUSD, toCurrency) {
+        if (toCurrency === 'Bs') {
+            return priceUSD * this.exchangeRate;
+        }
+        return priceUSD; // Ya está en USD
+    },
+    
+    getCurrencySymbol: function(currency) {
+        return currency === 'Bs' ? 'Bs' : '$';
+    },
+    
+    formatPrice: function(priceUSD) {
+        const convertedPrice = this.convertPrice(priceUSD, this.currentCurrency);
+        const symbol = this.getCurrencySymbol(this.currentCurrency);
+        return `${symbol}${convertedPrice.toFixed(2)}`;
+    },
     
     // Inicialización
     init: function() {
         console.log('🔄 Inicializando TPV aislado...');
+        console.log('💱 Tasa de cambio:', this.exchangeRate);
         
         // Asignar eventos con namespaces únicos
         this.agregarEventos();
@@ -173,7 +194,7 @@ const TPV = {
         
         // Pago
         document.getElementById('monto-tpv').addEventListener('input', () => this.calcularCambio());
-        document.getElementById('pago-metodo-tpv').addEventListener('change', () => this.calcularCambio());
+        document.getElementById('pago-metodo-tpv').addEventListener('change', () => this.onPaymentMethodChange());
         
         // Búsqueda de productos
         document.getElementById('producto-search-input').addEventListener('input', (e) => this.filtrarSelect('producto-select-tpv', e.target.value));
@@ -335,6 +356,10 @@ const TPV = {
                 
                 const fila = document.createElement('tr');
                 
+                // Precios formateados
+                const precioFormateado = this.formatPrice(item.precio);
+                const subtotalFormateado = this.formatPrice(subtotalItem);
+                
                 if (item.tipo === 'producto') {
                     fila.innerHTML = `
                         <td>${item.nombre}</td>
@@ -343,8 +368,8 @@ const TPV = {
                                    onchange="TPV.cambiarCantidad(${item.id}, '${item.tipo}', this.value)"
                                    style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
                         </td>
-                        <td>$${item.precio.toFixed(2)}</td>
-                        <td>$${subtotalItem.toFixed(2)}</td>
+                        <td>${precioFormateado}</td>
+                        <td>${subtotalFormateado}</td>
                         <td>
                             <button onclick="TPV.quitarItem(${item.id}, '${item.tipo}')" 
                                     style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
@@ -360,8 +385,8 @@ const TPV = {
                                    onchange="TPV.cambiarCantidad(${item.id}, '${item.tipo}', this.value)"
                                    style="width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
                         </td>
-                        <td>$${item.precio.toFixed(2)}</td>
-                        <td>$${subtotalItem.toFixed(2)}</td>
+                        <td>${precioFormateado}</td>
+                        <td>${subtotalFormateado}</td>
                         <td>
                             <button onclick="TPV.quitarItem(${item.id}, '${item.tipo}')" 
                                     style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
@@ -385,17 +410,20 @@ const TPV = {
         const impuestos = subtotal * 0.16;
         const total = subtotal + impuestos;
         
-        document.getElementById('subtotal-tpv').textContent = `$${subtotal.toFixed(2)}`;
-        document.getElementById('impuestos-tpv').textContent = `$${impuestos.toFixed(2)}`;
-        document.getElementById('total-tpv').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('subtotal-tpv').textContent = this.formatPrice(subtotal);
+        document.getElementById('impuestos-tpv').textContent = this.formatPrice(impuestos);
+        document.getElementById('total-tpv').textContent = this.formatPrice(total);
         
         this.calcularCambio();
     },
     
     // 4. CALCULAR CAMBIO
     calcularCambio: function() {
-        const totalTexto = document.getElementById('total-tpv').textContent.replace('$', '');
-        const total = parseFloat(totalTexto) || 0;
+        // Obtener total numérico limpio (sin símbolo de moneda)
+        const totalTexto = document.getElementById('total-tpv').textContent;
+        const symbol = this.getCurrencySymbol(this.currentCurrency);
+        const total = parseFloat(totalTexto.replace(symbol, '')) || 0;
+        
         const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
         const metodoPago = document.getElementById('pago-metodo-tpv').value;
         const btnCobrar = document.getElementById('btn-cobrar-tpv');
@@ -405,20 +433,27 @@ const TPV = {
         let cambio = 0;
         let valido = false;
         
-        // ID 1 = Efectivo, ID 5 = Dólares (también requieren monto)
+        // ID 1 = Dólares, ID 2 = Bolívares (Efectivo)
+        // Asumimos que métodos de efectivo requieren cálculo de cambio
         const metodoPagoId = parseInt(metodoPago);
-        if (metodoPagoId === 1 || metodoPagoId === 5) {
-            // Métodos que requieren monto recibido
+        
+        // Lógica simplificada: si hay monto recibido, calcular cambio
+        if (montoRecibido > 0) {
             if (montoRecibido >= total) {
                 cambio = montoRecibido - total;
                 valido = true;
             }
         } else {
-            // Otros métodos de pago (tarjeta, transferencia)
-            valido = true;
+            // Si no hay monto recibido, asumimos pago exacto para métodos no-efectivo
+            // O requerimos monto para efectivo
+            // Por ahora mantenemos lógica simple: si no es efectivo, es válido
+            if (metodoPagoId !== 1 && metodoPagoId !== 2) {
+                valido = true;
+            }
         }
         
-        document.getElementById('cambio-tpv').textContent = `$${cambio.toFixed(2)}`;
+        // Mostrar cambio con el símbolo correcto (siempre en la misma moneda del pago)
+        document.getElementById('cambio-tpv').textContent = `${symbol}${cambio.toFixed(2)}`;
         
         // Habilitar/deshabilitar botón cobrar
         if (valido && this.carrito.length > 0) {
@@ -429,6 +464,26 @@ const TPV = {
             btnCobrar.disabled = true;
             btnCobrar.style.backgroundColor = '#cccccc';
             console.log('❌ TPV: Botón cobrar DESHABILITADO');
+        }
+    },
+    
+    // Manejar cambio de método de pago
+    onPaymentMethodChange: function() {
+        const select = document.getElementById('pago-metodo-tpv');
+        const selectedOption = select.options[select.selectedIndex];
+        const newCurrency = selectedOption.dataset.currency;
+        
+        console.log('💳 Cambio de método de pago. Nueva moneda:', newCurrency);
+        
+        if (newCurrency && newCurrency !== this.currentCurrency) {
+            this.currentCurrency = newCurrency;
+            console.log('💱 Moneda cambiada a:', this.currentCurrency);
+            
+            // Actualizar toda la vista con la nueva moneda
+            this.actualizarVistaCarrito();
+        } else {
+            // Solo recalcular cambio si la moneda no cambió
+            this.calcularCambio();
         }
     },
     

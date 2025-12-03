@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('payment_method', function (Blueprint $table) {
             $table->smallInteger('id')->primary();
             $table->string('name', 20);
+            $table->string('currency', 3)->default('USD');
         });
     }
 
