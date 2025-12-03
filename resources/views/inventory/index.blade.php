@@ -64,26 +64,6 @@
         <div class="cabecera-inventario">
             <h2>Articulos en el Inventario</h2>
             
-            {{-- Mensajes de Sesión --}}
-            @if (session('success'))
-                <div class="alerta-exito" style="display: flex;">
-                    <span class="icono-ayuda">✓</span>
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
-            @if (session('error') || session('info'))
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>{{ session('error') ?? session('info') }}</p>
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>Error de validación: {{ $errors->first() }}</p>
-                </div>
-            @endif
-            
             <p class="total-invertido">Total invertido en inventario: <span id="total-invertido">${{ number_format($totalInvested, 2) }}</span></p> 
         </div>
 
@@ -126,7 +106,7 @@
                             <a href="{{ route('inventory.edit', $product->id) }}" class="btn-editar" style="background-color: #039438; color: white; padding: 5px 10px; border-radius: 3px; margin-right: 5px; text-decoration: none;">Editar</a>
                             
                             {{-- Botón Eliminar --}}
-                            <form action="{{ route('inventory.destroy', $product->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este artículo?');">
+                            <form action="{{ route('inventory.destroy', $product->id) }}" method="POST" style="display: inline-block;" data-item-name="{{ $product->name }}" data-item-type="producto">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-eliminar">Eliminar</button>

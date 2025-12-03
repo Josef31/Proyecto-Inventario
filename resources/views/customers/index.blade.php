@@ -42,27 +42,6 @@
 
     <main class="seccion-inventario">
         <div class="cabecera-inventario">
-            <h2>Directorio de Clientes</h2>
-            
-            {{-- Mensajes de Sesión --}}
-            @if (session('success'))
-                <div class="alerta-exito" style="display: flex;">
-                    <span class="icono-ayuda">✓</span>
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>{{ session('error') }}</p>
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>Error de validación: {{ $errors->first() }}</p>
-                </div>
-            @endif
         </div>
 
         <table class="tabla-inventario">
@@ -97,7 +76,7 @@
                         <td class="acciones">
                             <a href="{{ route('customers.edit', $customer->id) }}" class="btn-editar" style="background-color: #039438; color: white; padding: 5px 10px; border-radius: 3px; margin-right: 5px; text-decoration: none;">Editar</a>
                             
-                            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este cliente?');">
+                            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display: inline-block;" data-item-name="{{ $customer->name }}" data-item-type="cliente">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-eliminar">Eliminar</button>

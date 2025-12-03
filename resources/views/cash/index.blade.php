@@ -100,7 +100,7 @@
                     <label for="notes">Notas (Opcional):</label>
                     <textarea id="notes" name="notes" rows="3" placeholder="Observaciones del cierre..."></textarea>
                     
-                    <button type="submit" class="btn-cancelar" onclick="return confirm('¿Está seguro de que desea cerrar la caja? Esta acción no se puede deshacer.')">
+                    <button type="submit" class="btn-cancelar" id="btn-cerrar-caja">
                         Cerrar y Cortar Caja
                     </button>
                 </form>
@@ -114,20 +114,6 @@
             <h2>Historial de Cortes de Caja</h2>
             <p class="total-invertido">Cortes Registrados: <span id="cortes-registrados">{{ $totalCortes }}</span></p>
         </div>
-
-        @if(session('success'))
-            <div class="alerta-exito" style="display: flex;">
-                <span class="icono-ayuda">✓</span>
-                <p>{{ session('success') }}</p>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                <span class="icono-ayuda">✗</span>
-                <p>{{ session('error') }}</p>
-            </div>
-        @endif
 
         <table class="tabla-inventario tabla-cortes">
             <thead>
@@ -287,4 +273,33 @@
     color: #333333 !important;
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnCerrarCaja = document.getElementById('btn-cerrar-caja');
+    
+    if (btnCerrarCaja) {
+        btnCerrarCaja.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: '¿Cerrar caja?',
+                text: '¿Está seguro de que desea cerrar la caja? Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, cerrar caja',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.closest('form').submit();
+                }
+            });
+        });
+    }
+});
+</script>
 @endpush

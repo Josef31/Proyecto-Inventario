@@ -101,7 +101,7 @@
                         <a href="{{ route('users.edit', $user->id) }}" class="btn-editar">Editar</a>
                         
                         @if(!$user->isAdmin())
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este usuario?')">
+                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display: inline;" data-item-name="{{ $user->name }}" data-item-type="usuario">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-eliminar">Eliminar</button>

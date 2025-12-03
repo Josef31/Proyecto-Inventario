@@ -65,26 +65,6 @@
 
     <main class="seccion-inventario">
         <div class="cabecera-inventario">
-            <h2>Historial de Compras</h2>
-            
-            @if (session('success'))
-                <div class="alerta-exito" style="display: flex;">
-                    <span class="icono-ayuda">✓</span>
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>{{ session('error') }}</p>
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>Error de validación: {{ $errors->first() }}</p>
-                </div>
-            @endif
         </div>
 
         <table class="tabla-inventario">
@@ -111,7 +91,7 @@
                         <td class="acciones">
                             <a href="{{ route('purchases.show', $purchase->id) }}" class="btn-editar" style="background-color: #3498db; color: white; padding: 5px 10px; border-radius: 3px; margin-right: 5px; text-decoration: none;">Ver</a>
                             
-                            <form action="{{ route('purchases.destroy', $purchase->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro? Esto revertirá el stock de los productos.');">
+                            <form action="{{ route('purchases.destroy', $purchase->id) }}" method="POST" style="display: inline-block;" data-item-name="Compra #{{ $purchase->id }}" data-item-type="compra" data-warning-message="Esto revertirá el stock de los productos">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-eliminar">Eliminar</button>

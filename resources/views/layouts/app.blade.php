@@ -47,7 +47,35 @@
         </div>
     </div>
     
+    @if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Toastify({
+                text: "✅ {{ session('success') }}",
+                duration: 4000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#27ae60"
+            }).showToast();
+        });
+    </script>
+    @endif
+    
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#e74c3c'
+            });
+        });
+    </script>
+    @endif
+    
     <script src="{{ asset('js/admin-system.js') }}"></script>
+    <script src="{{ asset('js/delete-confirmation.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

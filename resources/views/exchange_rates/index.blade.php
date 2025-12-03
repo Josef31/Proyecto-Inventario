@@ -98,7 +98,7 @@
                     <td class="acciones">
                         <a href="{{ route('exchange_rates.edit', $rate->id) }}" class="btn-editar">Editar</a>
                         
-                        <form action="{{ route('exchange_rates.destroy', $rate->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar esta tasa de cambio?')">
+                        <form action="{{ route('exchange_rates.destroy', $rate->id) }}" method="POST" style="display: inline;" data-item-name="{{ $rate->base_currency }}/{{ $rate->target_currency }}" data-item-type="tasa de cambio">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-eliminar">Eliminar</button>

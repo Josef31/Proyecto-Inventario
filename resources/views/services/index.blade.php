@@ -92,10 +92,10 @@
                         <a href="{{ route('services.edit', $service->id) }}" class="btn-editar">Editar</a>
 
                         <!-- Botón Eliminar -->
-                        <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display: inline;" data-item-name="{{ $service->name }}" data-item-type="servicio">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn-eliminar" onclick="return confirm('¿Está seguro de que desea eliminar este servicio?')">Eliminar</button>
+                            <button type="submit" class="btn-eliminar">Eliminar</button>
                         </form>
                     </td>
                 </tr>
@@ -109,7 +109,14 @@
 @section('scripts')
 <script>
     function generarReporte() {
-        alert('Generando reporte de servicios...');
+        Toastify({
+            text: "📊 Generando reporte de servicios...",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#3498db"
+        }).showToast();
+        // Aquí iría la lógica para generar el reporte
     }
 </script>
 @endsection
