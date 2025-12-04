@@ -43,6 +43,39 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->id === 1;
+        return $this->id_role === 1;
+    }
+
+    /**
+     * Verificar si el usuario tiene un rol específico
+     */
+    public function hasRole($roleId)
+    {
+        return $this->id_role === $roleId;
+    }
+
+    /**
+     * Verificar si el usuario puede acceder a un módulo
+     */
+    public function canAccess($module)
+    {
+        $roleId = $this->id_role;
+
+        // Administrador puede acceder a todo
+        if ($roleId === 1) {
+            return true;
+        }
+
+        // Gerente puede acceder a todo excepto usuarios
+        if ($roleId === 2) {
+            return $module !== 'users';
+        }
+
+        // Cajero solo puede acceder a ventas y compras (NO dashboard)
+        if ($roleId === 3) {
+            return in_array($module, ['sales', 'purchases']);
+        }
+
+        return false;
     }
 }

@@ -26,38 +26,101 @@ a {
 /* 2. BARRA SUPERIOR */
 /* ============================================================================== */
 .barra-superior {
-    background-color: #fff;
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    padding: 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.barra-superior nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    padding: 0 20px;
+    gap: 10px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
 }
 
 .barra-superior nav a {
     text-decoration: none;
-    color: #333;
-    margin-right: 20px;
-    font-weight: bold;
-    padding: 5px 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    padding: 16px 18px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    position: relative;
 }
 
 .barra-superior nav a:hover {
-    color: #007bff;
-    border-bottom: 2px solid #007bff;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-bottom-color: #ffd700;
+}
+
+.barra-superior nav a.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-bottom-color: #ffd700;
+    font-weight: 700;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+    margin-left: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 20px;
+}
+
+.user-details {
+    text-align: right;
+    color: white;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    color: #fff;
+}
+
+.user-role {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    display: block;
+    margin-top: 2px;
 }
 
 .barra-superior nav button {
-    background: none;
+    background: rgba(231, 76, 60, 0.9);
     border: none;
-    color: #333;
+    color: white;
     cursor: pointer;
-    font-weight: bold;
-    font-size: inherit;
-    margin-right: 20px;
-    padding: 5px 0;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .barra-superior nav button:hover {
-    color: #e74c3c;
-    border-bottom: 2px solid #e74c3c;
+    background: #c0392b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================================================== */
@@ -318,9 +381,12 @@ a {
 }
 
 .seccion-acciones-admin {
-    text-align: center; /* Centra el contenido en línea/en línea-bloque (el botón) */
-    padding: 15px; /* Ajusta el padding si es necesario */
+    text-align: center;
+    /* Centra el contenido en línea/en línea-bloque (el botón) */
+    padding: 15px;
+    /* Ajusta el padding si es necesario */
 }
+
 /* ============================================================================== */
 /* 6. ESTILOS PARA VENTAS (TPV) */
 /* ============================================================================== */
@@ -335,14 +401,14 @@ a {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tpv-col-derecha {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .buscador-productos {
@@ -577,25 +643,26 @@ a {
     .contenido-flex {
         flex-direction: column;
     }
-    
+
     .barra-lateral {
         width: 100%;
     }
-    
+
     .tpv-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .cabecera-inventario {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .total-invertido {
         position: static;
         margin-top: 10px;
     }
 }
+
 /* ============================================================================== */
 /* 9. ESTILOS ESPECÍFICOS PARA LA TABLA DE SERVICIOS */
 /* ============================================================================== */
@@ -606,8 +673,10 @@ a {
     text-align: center;
 }
 
-.tabla-inventario th:nth-child(2), /* Nombre del Servicio */
-.tabla-inventario th:nth-child(3) { /* Descripción */
+.tabla-inventario th:nth-child(2),
+/* Nombre del Servicio */
+.tabla-inventario th:nth-child(3) {
+    /* Descripción */
     text-align: left;
 }
 
@@ -621,36 +690,48 @@ a {
     text-align: center;
 }
 
-.tabla-inventario tbody td:nth-child(2), /* Nombre del Servicio */
-.tabla-inventario tbody td:nth-child(3) { /* Descripción */
+.tabla-inventario tbody td:nth-child(2),
+/* Nombre del Servicio */
+.tabla-inventario tbody td:nth-child(3) {
+    /* Descripción */
     text-align: left;
 }
 
-.tabla-inventario tbody td:nth-child(3) { /* Columna de Descripción */
-    max-width: 300px; /* Limitar ancho para que no se extienda demasiado */
-    word-wrap: break-word; /* Permite que el texto largo se rompa */
+.tabla-inventario tbody td:nth-child(3) {
+    /* Columna de Descripción */
+    max-width: 300px;
+    /* Limitar ancho para que no se extienda demasiado */
+    word-wrap: break-word;
+    /* Permite que el texto largo se rompa */
     font-size: 0.85em;
     color: #555;
 }
 
 /* Estilo para los valores de moneda */
-.tabla-inventario tbody td:nth-child(4), /* Costo Base */
-.tabla-inventario tbody td:nth-child(5), /* Tarifa Cliente */
-.tabla-inventario tbody td:nth-child(7) { /* Ganancia Estimada */
+.tabla-inventario tbody td:nth-child(4),
+/* Costo Base */
+.tabla-inventario tbody td:nth-child(5),
+/* Tarifa Cliente */
+.tabla-inventario tbody td:nth-child(7) {
+    /* Ganancia Estimada */
     font-weight: bold;
     color: #34495e;
 }
 
 /* Resaltar la columna del Margen % */
 .tabla-inventario tbody td:nth-child(8) {
-    background-color: #ecf0f1; /* Fondo suave para destacar */
+    background-color: #ecf0f1;
+    /* Fondo suave para destacar */
     font-weight: bold;
-    color: #2c3e50; /* Color de texto más oscuro */
-    border-left: 3px solid #3498db; /* Borde izquierdo para énfasis */
+    color: #2c3e50;
+    /* Color de texto más oscuro */
+    border-left: 3px solid #3498db;
+    /* Borde izquierdo para énfasis */
 }
 
 /* Botones de Acciones */
-.btn-editar, .btn-eliminar {
+.btn-editar,
+.btn-eliminar {
     padding: 6px 10px;
     border-radius: 4px;
     cursor: pointer;
@@ -693,8 +774,10 @@ a {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4); /* Fondo semi-transparente oscuro */
-    display: flex; /* Para centrar el contenido */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Fondo semi-transparente oscuro */
+    display: flex;
+    /* Para centrar el contenido */
     justify-content: center;
     align-items: center;
 }
@@ -703,10 +786,12 @@ a {
     background-color: #fefefe;
     padding: 25px;
     border: 1px solid #888;
-    width: 90%; /* Ancho en móviles */
-    max-width: 500px; /* Ancho máximo en escritorio */
+    width: 90%;
+    /* Ancho en móviles */
+    max-width: 500px;
+    /* Ancho máximo en escritorio */
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
@@ -761,15 +846,18 @@ a {
     background-color: #7f8c8d;
 }
 
-.modal-botones .btn-listo { /* Utiliza el estilo existente de .btn-listo */
-    width: auto; /* Anula el 100% para que solo ocupe su contenido */
+.modal-botones .btn-listo {
+    /* Utiliza el estilo existente de .btn-listo */
+    width: auto;
+    /* Anula el 100% para que solo ocupe su contenido */
     padding: 10px 20px;
     margin-top: 0;
 }
 
 /* Estilos adicionales para que .btn-eliminar y .btn-editar se vean mejor en la tabla */
 .tabla-inventario td:last-child {
-    white-space: nowrap; /* Evita que los botones se envuelvan a menos que el espacio sea muy reducido */
+    white-space: nowrap;
+    /* Evita que los botones se envuelvan a menos que el espacio sea muy reducido */
 }
 
 /* ============================================================================== */
@@ -788,7 +876,8 @@ a {
 .seccion-formulario h4 {
     font-size: 1em;
     font-weight: bold;
-    color: #2ecc71; /* Verde coherente con éxito */
+    color: #2ecc71;
+    /* Verde coherente con éxito */
     margin-bottom: 10px;
     text-align: center;
     padding-bottom: 5px;
@@ -812,11 +901,13 @@ a {
     padding-top: 10px;
     margin-top: 10px;
     font-size: 1em;
-    color: white; /* Texto blanco en la barra lateral oscura */
+    color: white;
+    /* Texto blanco en la barra lateral oscura */
 }
 
 /* Botón de Abrir/Cerrar Caja */
-#panel-cierre .btn-cancelar { /* Usamos btn-cancelar para 'Cerrar Caja' por su color rojo */
+#panel-cierre .btn-cancelar {
+    /* Usamos btn-cancelar para 'Cerrar Caja' por su color rojo */
     width: 100%;
     padding: 10px;
     background-color: #e74c3c;
@@ -838,8 +929,11 @@ a {
 .tabla-inventario.tabla-cortes th {
     text-align: center;
 }
-.tabla-inventario.tabla-cortes th:first-child, /* Fecha de Apertura */
-.tabla-inventario.tabla-cortes th:last-child { /* Estado */
+
+.tabla-inventario.tabla-cortes th:first-child,
+/* Fecha de Apertura */
+.tabla-inventario.tabla-cortes th:last-child {
+    /* Estado */
     text-align: center;
 }
 
@@ -851,14 +945,18 @@ a {
 
 /* Resaltar la diferencia (positivo/negativo) */
 .tabla-inventario.tabla-cortes .texto-positivo {
-    background-color: #e8f5e9; /* Fondo verde muy claro para sobresalto */
-    color: #2e7d32; /* Verde oscuro */
+    background-color: #e8f5e9;
+    /* Fondo verde muy claro para sobresalto */
+    color: #2e7d32;
+    /* Verde oscuro */
     font-weight: bold;
 }
 
 .tabla-inventario.tabla-cortes .texto-negativo {
-    background-color: #ffebee; /* Fondo rojo muy claro para sobresalto */
-    color: #c62828; /* Rojo oscuro */
+    background-color: #ffebee;
+    /* Fondo rojo muy claro para sobresalto */
+    color: #c62828;
+    /* Rojo oscuro */
     font-weight: bold;
 }
 
@@ -873,12 +971,14 @@ a {
 }
 
 .badge-abierta {
-    background: #2ecc71; /* Verde para abierta */
+    background: #2ecc71;
+    /* Verde para abierta */
     color: white;
 }
 
 .badge-cerrada {
-    background: #95a5a6; /* Gris para cerrada */
+    background: #95a5a6;
+    /* Gris para cerrada */
     color: white;
 }
 
@@ -896,21 +996,25 @@ a {
 
 /* Estilo para el elemento Select */
 .buscador-productos select {
-    flex: 1; /* Ocupa el espacio disponible */
-    width: 100%; /* Asegura el ancho si flex no está activo */
+    flex: 1;
+    /* Ocupa el espacio disponible */
+    width: 100%;
+    /* Asegura el ancho si flex no está activo */
     padding: 10px;
-    
+
     /* Diseño moderno */
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: #fff; /* Fondo blanco */
+    background-color: #fff;
+    /* Fondo blanco */
     color: #333;
     font-size: 1em;
     font-weight: 500;
-    
 
 
-    appearance: none; /* Oculta el estilo nativo en la mayoría de navegadores */
+
+    appearance: none;
+    /* Oculta el estilo nativo en la mayoría de navegadores */
     -webkit-appearance: none;
     -moz-appearance: none;
 
@@ -919,18 +1023,21 @@ a {
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 12px;
-    padding-right: 30px; /* Espacio para la flecha */
+    padding-right: 30px;
+    /* Espacio para la flecha */
     cursor: pointer;
     transition: border-color 0.2s;
 }
 
 .buscador-productos select:hover {
-    border-color: #3498db; /* Azul al pasar el mouse */
+    border-color: #3498db;
+    /* Azul al pasar el mouse */
 }
 
 .buscador-productos select:focus {
     outline: none;
-    border-color: #2ecc71; /* Verde al enfocar */
+    border-color: #2ecc71;
+    /* Verde al enfocar */
     box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
 }
 
@@ -942,7 +1049,8 @@ a {
 }
 
 .buscador-productos select option:disabled {
-    color: #95a5a6; /* Gris para la opción 'Seleccionar Producto' */
+    color: #95a5a6;
+    /* Gris para la opción 'Seleccionar Producto' */
     font-style: italic;
     font-weight: normal;
 }
@@ -957,7 +1065,7 @@ a {
     border-collapse: collapse;
     margin-top: 10px;
     background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -1029,7 +1137,7 @@ a {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
@@ -1060,7 +1168,7 @@ a {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
@@ -1133,21 +1241,24 @@ a {
     .tabla-carrito {
         font-size: 0.85em;
     }
-    
+
     .tabla-carrito th,
     .tabla-carrito td {
         padding: 8px 10px;
     }
-    
+
     .input-cantidad {
         width: 50px;
     }
-    
+
     .btn-quitar {
         width: 25px;
         height: 25px;
         font-size: 0.9em;
     }
 }
+
 /* Hide cliente info until assigned */
-#cliente-info-tpv { display: none !important; }
+#cliente-info-tpv {
+    display: none !important;
+}

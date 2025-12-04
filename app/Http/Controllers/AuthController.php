@@ -23,7 +23,17 @@ class AuthController extends Controller
         // Intentar autenticar usando el campo 'name'
         if (Auth::attempt(['name' => $credentials['username'], 'password' => $credentials['password']])) {
             $request->session()->regenerate();
-            return redirect()->route('dashboard.index');
+            
+            // Redirigir según el rol del usuario
+            $user = Auth::user();
+            
+            // Cajero (ID: 3) va directo a ventas
+            if ($user->id_role === 3) {
+                return redirect()->intended(route('sales.index'));
+            }
+            
+            // Gerente y Admin van al dashboard
+            return redirect()->intended(route('dashboard.index'));
         }
 
         // Si falla la autenticación
