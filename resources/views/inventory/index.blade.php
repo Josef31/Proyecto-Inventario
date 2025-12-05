@@ -154,68 +154,71 @@
             title: '📋 Formato del Archivo Excel',
             html: `
                 <div style="text-align: left; padding: 10px;">
-                    <h4 style="color: #2c3e50; margin-bottom: 10px;">Columnas Requeridas:</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                    <p style="margin-bottom: 15px; color: #555;">Tu archivo Excel debe tener las siguientes columnas en la primera fila:</p>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
                         <thead>
-                            <tr style="background-color: #34495e; color: white;">
-                                <th style="padding: 8px; border: 1px solid #ddd;">Columna</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Tipo</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Ejemplo</th>
+                            <tr style="background-color: #5b9bd5; color: white;">
+                                <th style="padding: 10px; border: 1px solid #ddd;">name</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">id_classification</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">price_buy</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">price_sell</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">stock_initial</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">stock_minimum</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">expiration_date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>name</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Texto</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Laptop Dell</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>id_classification</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Número (1-5)</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>price_buy</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Decimal</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">850.50</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>price_sell</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Decimal</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">1199.99</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>stock_initial</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Entero</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">15</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>stock_minimum</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Entero</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">5</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>expiration_date</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Fecha (opcional)</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">31/12/2028</td>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd; font-style: italic; color: #666;">Laptop Dell</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">850.50</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">1199.99</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">15</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">5</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">31/12/2028</td>
                             </tr>
                         </tbody>
                     </table>
                     
-                    <div style="background-color: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                        <strong>⚠️ Importante:</strong>
-                        <ul style="margin: 5px 0; padding-left: 20px;">
-                            <li>La primera fila debe contener los nombres de las columnas</li>
-                            <li>El precio de venta debe ser al menos 30% mayor al de compra</li>
-                            <li>Las fechas deben estar en formato DD/MM/YYYY o dejar "N/A"</li>
-                            <li>Archivo máximo: 5MB</li>
+                    <div style="background-color: #fff3cd; padding: 12px; border-left: 4px solid #ffc107; margin-bottom: 10px;">
+                        <strong>📌 Tipos de datos:</strong>
+                        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <li><strong>name:</strong> Texto (nombre del producto)</li>
+                            <li><strong>id_classification:</strong> Número del 1 al 5</li>
+                            <li><strong>price_buy:</strong> Número decimal (precio de compra)</li>
+                            <li><strong>price_sell:</strong> Número decimal (precio de venta)</li>
+                            <li><strong>stock_initial:</strong> Número entero (stock inicial)</li>
+                            <li><strong>stock_minimum:</strong> Número entero (stock mínimo)</li>
+                            <li><strong>expiration_date:</strong> Fecha DD/MM/YYYY o "N/A"</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background-color: #d1ecf1; padding: 12px; border-left: 4px solid #0c5460; margin-bottom: 10px;">
+                        <strong>🏷️ Clasificaciones (id_classification):</strong>
+                        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <li><strong>1</strong> = Electrónica</li>
+                            <li><strong>2</strong> = Alimentos</li>
+                            <li><strong>3</strong> = Ropa</li>
+                            <li><strong>4</strong> = Servicios</li>
+                            <li><strong>5</strong> = Otros</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background-color: #f8d7da; padding: 12px; border-left: 4px solid #721c24;">
+                        <strong>⚠️ Reglas importantes:</strong>
+                        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
+                            <li>La primera fila debe tener los nombres de columnas exactos</li>
+                            <li>El precio de venta debe ser <strong>mínimo 30% mayor</strong> al de compra</li>
+                            <li>Formato de archivo: <strong>.xlsx</strong> o <strong>.xls</strong></li>
+                            <li>Tamaño máximo: <strong>5MB</strong></li>
                         </ul>
                     </div>
                 </div>
             `,
             confirmButtonText: '✅ Entendido',
             confirmButtonColor: '#27ae60',
-            width: '700px'
+            width: '900px'
         });
     }
     

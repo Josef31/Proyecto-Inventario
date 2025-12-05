@@ -18,8 +18,8 @@ class PaymentMethodSeeder extends Seeder
             ['id' => 2, 'name' => 'Bolívares', 'currency' => 'Bs'],
             ['id' => 3, 'name' => 'Transferencia Bs', 'currency' => 'Bs'],
             ['id' => 4, 'name' => 'Pago Móvil Bs', 'currency' => 'Bs'],
-            ['id' => 5, 'name' => 'Tarjeta Débito', 'currency' => 'USD'],
-            ['id' => 6, 'name' => 'Tarjeta Crédito', 'currency' => 'USD'],
+            ['id' => 5, 'name' => 'Tarjeta Débito', 'currency' => 'Bs'],
+            ['id' => 6, 'name' => 'Tarjeta Crédito', 'currency' => 'Bs'],
         ]);
     }
 }
