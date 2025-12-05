@@ -31,28 +31,21 @@ class CashController extends Controller
         $cashSalesTodayUsd = 0;
         
         if ($openCashRegister) {
-            // Ventas en Bolívares (todos los métodos de pago EXCEPTO Dólares)
-            $salesBs = Sale::with(['items', 'services'])
-                ->where('created_at', '>=', $openCashRegister->created_at)
-                ->where('payment_method_id', '!=', 1) // Todos excepto Dólares
+            // Obtener todas las ventas completadas desde la apertura
+            $salesIds = Sale::where('created_at', '>=', $openCashRegister->created_at)
                 ->where('status', 'completada')
-                ->get();
+                ->pluck('invoice_number');
 
-            if ($salesBs->isNotEmpty()) {
-                // Usar el accessor total del modelo Sale que incluye IVA
-                $cashSalesTodayBs = $salesBs->sum('total');
-            }
+            if ($salesIds->isNotEmpty()) {
+                // Sumar pagos en Bolívares desde sale_payments
+                $cashSalesTodayBs = \App\Models\SalePayment::whereIn('sale_id', $salesIds)
+                    ->where('currency', 'Bs')
+                    ->sum('amount');
 
-            // Ventas en Dólares (payment_method_id = 1)
-            $salesUsd = Sale::with(['items', 'services'])
-                ->where('created_at', '>=', $openCashRegister->created_at)
-                ->where('payment_method_id', 1) // Dólares
-                ->where('status', 'completada')
-                ->get();
-
-            if ($salesUsd->isNotEmpty()) {
-                // Usar el accessor total del modelo Sale que incluye IVA
-                $cashSalesTodayUsd = $salesUsd->sum('total');
+                // Sumar pagos en Dólares desde sale_payments
+                $cashSalesTodayUsd = \App\Models\SalePayment::whereIn('sale_id', $salesIds)
+                    ->where('currency', 'USD')
+                    ->sum('amount');
             }
         }
 
@@ -123,39 +116,27 @@ class CashController extends Controller
                     ->with('error', 'No hay caja abierta para cerrar');
             }
 
+
             // Calcular ventas en efectivo desde la apertura de la caja
-            // Ventas en Bolívares (todos los métodos EXCEPTO Dólares)
-            $salesBs = Sale::where('created_at', '>=', $cashRegister->created_at)
-                ->where('payment_method_id', '!=', 1) // Todos excepto Dólares
+            // Obtener todas las ventas completadas desde la apertura
+            $salesIds = Sale::where('created_at', '>=', $cashRegister->created_at)
                 ->where('status', 'completada')
                 ->pluck('invoice_number');
 
+            // Calcular totales por moneda desde la tabla sale_payments
             $cashSalesBs = 0;
-            if ($salesBs->isNotEmpty()) {
-                $items = \App\Models\SaleItem::whereIn('sale_id', $salesBs)->get();
-                $itemsTotal = $items->sum(function($item) {
-                    return $item->price * $item->quantity;
-                });
-                $services = \App\Models\SaleService::whereIn('sale_id', $salesBs)->get();
-                $servicesTotal = $services->sum('price');
-                $cashSalesBs = $itemsTotal + $servicesTotal;
-            }
-
-            // Ventas en Dólares (payment_method_id = 1)
-            $salesUsd = Sale::where('created_at', '>=', $cashRegister->created_at)
-                ->where('payment_method_id', 1) // Dólares
-                ->where('status', 'completada')
-                ->pluck('invoice_number');
-
             $cashSalesUsd = 0;
-            if ($salesUsd->isNotEmpty()) {
-                $items = \App\Models\SaleItem::whereIn('sale_id', $salesUsd)->get();
-                $itemsTotal = $items->sum(function($item) {
-                    return $item->price * $item->quantity;
-                });
-                $services = \App\Models\SaleService::whereIn('sale_id', $salesUsd)->get();
-                $servicesTotal = $services->sum('price');
-                $cashSalesUsd = $itemsTotal + $servicesTotal;
+
+            if ($salesIds->isNotEmpty()) {
+                // Sumar pagos en Bolívares
+                $cashSalesBs = \App\Models\SalePayment::whereIn('sale_id', $salesIds)
+                    ->where('currency', 'Bs')
+                    ->sum('amount');
+
+                // Sumar pagos en Dólares
+                $cashSalesUsd = \App\Models\SalePayment::whereIn('sale_id', $salesIds)
+                    ->where('currency', 'USD')
+                    ->sum('amount');
             }
 
             // Actualizar la caja

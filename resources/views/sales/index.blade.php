@@ -2,6 +2,38 @@
 
 @section('title', 'Ventas | Sistema de Administración')
 
+<style>
+    /* Estilos forzados para inputs de pago */
+    #pago-metodo-tpv {
+        padding: 12px !important;
+        font-size: 15px !important;
+        border: 2px solid #ddd !important;
+        border-radius: 4px !important;
+        background-color: white !important;
+        height: 45px !important;
+        line-height: normal !important;
+        width: auto !important;
+    }
+    
+    #monto-pago-tpv {
+        padding: 12px !important;
+        font-size: 15px !important;
+        border: 2px solid #ddd !important;
+        border-radius: 4px !important;
+        height: 45px !important;
+        line-height: normal !important;
+        width: auto !important;
+    }
+    
+    #btn-agregar-pago {
+        padding: 12px 20px !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
+        height: 45px !important;
+        line-height: normal !important;
+    }
+</style>
+
 @section('content')
 <div class="contenido-flex">
 
@@ -103,15 +135,48 @@
                 </div>
 
                 <div class="opciones-pago">
-                    <h4>Método de Pago</h4>
-                    <select id="pago-metodo-tpv">
-                        @foreach($paymentMethods as $method)
-                            <option value="{{ $method->id }}" data-currency="{{ $method->currency }}">{{ $method->name }}</option>
-                        @endforeach
-                    </select>
-                    <input type="number" id="monto-tpv" placeholder="Monto Recibido" min="0" step="0.01">
+                    <h4>Métodos de Pago</h4>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <select id="pago-metodo-tpv" style="flex: 1 !important; padding: 12px !important; font-size: 15px !important; border: 2px solid #ddd !important; border-radius: 4px !important; background-color: white !important; height: auto !important; min-height: 45px !important;">
+                            @foreach($paymentMethods as $method)
+                                <option value="{{ $method->id }}" data-currency="{{ $method->currency }}">{{ $method->name }}</option>
+                            @endforeach
+                        </select>
+                        <input type="number" id="monto-pago-tpv" placeholder="Monto" min="0.01" step="0.01" style="flex: 1 !important; padding: 12px !important; font-size: 15px !important; border: 2px solid #ddd !important; border-radius: 4px !important; height: auto !important; min-height: 45px !important;">
+                        <button class="btn-accion" id="btn-agregar-pago" style="padding: 12px 20px !important; background-color: #039438 !important; font-size: 15px !important; font-weight: bold !important; height: auto !important; min-height: 45px !important;">+ AGREGAR</button>
+                    </div>
 
-                    <div class="detalle-pago">
+                    <div id="pagos-lista" style="margin-bottom: 15px;">
+                        <table class="tabla-carrito" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Método</th>
+                                    <th>Monto</th>
+                                    <th>Moneda</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pagos-body-tpv">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #999;">No hay pagos agregados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="detalle-pago" style="background-color: #f0f0f0; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                        <p><strong>Total Pagado:</strong></p>
+                        <p id="total-pagado-tpv" style="color: #039438; font-weight: bold;">$0.00</p>
+                    </div>
+
+                    <div class="detalle-pago" id="falta-pagar-container" style="background-color: #fff3cd; padding: 8px; border-radius: 4px; margin-bottom: 8px; display: none;">
+                        <p><strong>Falta por Pagar:</strong></p>
+                        <p id="falta-pagar-usd-tpv" style="color: #856404; font-weight: bold; margin: 2px 0;">$0.00 USD</p>
+                        <p id="falta-pagar-bs-tpv" style="color: #856404; font-weight: bold; margin: 2px 0;">Bs0.00</p>
+                    </div>
+
+                    <div class="detalle-pago" id="cambio-container" style="display: none;">
                         <p>Su Cambio:</p>
                         <p id="cambio-tpv">$0.00</p>
                     </div>
@@ -139,6 +204,7 @@ const TPV = {
     customersData: @json($customers), // Datos de clientes para búsqueda local
     exchangeRate: {{ $exchangeRate }}, // Tasa de cambio actual
     currentCurrency: 'USD', // Moneda actual (por defecto USD)
+    pagos: [], // Array de pagos múltiples
     
     // Funciones de conversión de moneda
     convertPrice: function(priceUSD, toCurrency) {
@@ -158,8 +224,8 @@ const TPV = {
         return `${symbol}${convertedPrice.toFixed(2)}`;
     },
     
-    // Inicialización
     init: function() {
+        // CACHE BUSTER: 2025-12-05-10:35:00-v3.0-FIXED
         console.log('🔄 Inicializando TPV aislado...');
         console.log('💱 Tasa de cambio:', this.exchangeRate);
         
@@ -187,7 +253,7 @@ const TPV = {
         document.getElementById('btn-cancelar-tpv').addEventListener('click', () => this.limpiarTodo());
         
         // Pago
-        document.getElementById('monto-tpv').addEventListener('input', () => this.calcularCambio());
+        document.getElementById('btn-agregar-pago').addEventListener('click', () => this.agregarPago());
         document.getElementById('pago-metodo-tpv').addEventListener('change', () => this.onPaymentMethodChange());
         
         // Búsqueda de productos
@@ -536,6 +602,137 @@ const TPV = {
         console.log('✅ TPV: Cliente asignado correctamente');
     },
     
+    // 5B. AGREGAR PAGO
+    agregarPago: function() {
+        const metodoPagoSelect = document.getElementById('pago-metodo-tpv');
+        const montoInput = document.getElementById('monto-pago-tpv');
+        
+        const paymentMethodId = parseInt(metodoPagoSelect.value);
+        const amount = parseFloat(montoInput.value);
+        
+        if (!paymentMethodId || isNaN(amount) || amount <= 0) {
+            Toastify({
+                text: "⚠️ Selecciona un método de pago y un monto válido",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#f39c12"
+            }).showToast();
+            return;
+        }
+        
+        const selectedOption = metodoPagoSelect.options[metodoPagoSelect.selectedIndex];
+        const paymentMethodName = selectedOption.text;
+        const currency = selectedOption.getAttribute('data-currency');
+        
+        this.pagos.push({
+            payment_method_id: paymentMethodId,
+            payment_method_name: paymentMethodName,
+            amount: amount,
+            currency: currency
+        });
+        
+        // Limpiar inputs
+        montoInput.value = '';
+        
+        this.actualizarVistaPagos();
+        
+        Toastify({
+            text: "✅ Pago agregado",
+            duration: 2000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#27ae60"
+        }).showToast();
+    },
+    
+    // 5C. ELIMINAR PAGO
+    eliminarPago: function(index) {
+        this.pagos.splice(index, 1);
+        this.actualizarVistaPagos();
+    },
+    
+    // 5D. ACTUALIZAR VISTA DE PAGOS
+    actualizarVistaPagos: function() {
+        const tbody = document.getElementById('pagos-body-tpv');
+        
+        if (this.pagos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No hay pagos agregados</td></tr>';
+            document.getElementById('total-pagado-tpv').textContent = '$0.00';
+            document.getElementById('falta-pagar-container').style.display = 'none';
+            document.getElementById('cambio-container').style.display = 'none';
+            return;
+        }
+        
+        let html = '';
+        this.pagos.forEach((pago, index) => {
+            const symbol = pago.currency === 'Bs' ? 'Bs' : '$';
+            html += `
+                <tr>
+                    <td>${pago.payment_method_name}</td>
+                    <td>${symbol}${pago.amount.toFixed(2)}</td>
+                    <td>${pago.currency}</td>
+                    <td>
+                        <button class="btn-eliminar-pago" data-index="${index}" style="background-color: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 16px; font-weight: bold;">×</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+        
+        // Agregar event listeners a los botones de eliminar
+        document.querySelectorAll('.btn-eliminar-pago').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                this.eliminarPago(index);
+            });
+        });
+        
+        // Calcular totales - convertir todo a USD primero
+        const totalPagadoUSD = this.pagos.reduce((sum, pago) => {
+            if (pago.currency === 'USD') {
+                return sum + pago.amount;
+            } else {
+                // Convertir Bs a USD
+                return sum + (pago.amount / this.exchangeRate);
+            }
+        }, 0);
+        
+        const totalElement = document.getElementById('total-tpv');
+        const totalFullText = totalElement.textContent || totalElement.innerText;
+        const totalTexto = totalFullText.replace(/[$Bs]/g, '').trim();
+        const totalVenta = parseFloat(totalTexto) || 0;
+        
+        // Detectar si el total está en Bs o USD
+        const totalEnBs = totalFullText.indexOf('Bs') !== -1;
+        
+        // Convertir total pagado a la moneda del total para comparación
+        const totalPagadoEnMonedaVenta = totalEnBs ? (totalPagadoUSD * this.exchangeRate) : totalPagadoUSD;
+        
+        document.getElementById('total-pagado-tpv').textContent = '$' + totalPagadoUSD.toFixed(2);
+        
+        if (totalPagadoEnMonedaVenta < totalVenta) {
+            const falta = totalVenta - totalPagadoEnMonedaVenta;
+            // Convertir falta a ambas monedas
+            const faltaUSD = totalEnBs ? (falta / this.exchangeRate) : falta;
+            const faltaBs = totalEnBs ? falta : (falta * this.exchangeRate);
+            
+            document.getElementById('falta-pagar-usd-tpv').textContent = '$' + faltaUSD.toFixed(2) + ' USD';
+            document.getElementById('falta-pagar-bs-tpv').textContent = 'Bs' + faltaBs.toFixed(2);
+            document.getElementById('falta-pagar-container').style.display = 'flex';
+            document.getElementById('cambio-container').style.display = 'none';
+        } else if (totalPagadoEnMonedaVenta > totalVenta) {
+            const cambio = totalPagadoEnMonedaVenta - totalVenta;
+            const cambioUSD = totalEnBs ? (cambio / this.exchangeRate) : cambio;
+            document.getElementById('cambio-tpv').textContent = '$' + cambioUSD.toFixed(2);
+            document.getElementById('cambio-container').style.display = 'flex';
+            document.getElementById('falta-pagar-container').style.display = 'none';
+        } else {
+            document.getElementById('falta-pagar-container').style.display = 'none';
+            document.getElementById('cambio-container').style.display = 'none';
+        }
+    },
+    
     // 6. PROCESAR VENTA
     procesarVenta: function() {
         console.log('💰 TPV: PROCESANDO VENTA...');
@@ -567,32 +764,64 @@ const TPV = {
         
         console.log('✅ TPV: Carrito OK, continuando...');
         
-        const totalTexto = document.getElementById('total-tpv').textContent.replace(/[$Bs]/g, '').trim();
+        const totalElement = document.getElementById('total-tpv');
+        const totalFullText = totalElement.textContent || totalElement.innerText;
+        const totalTexto = totalFullText.replace(/[$Bs]/g, '').trim();
         const total = parseFloat(totalTexto);
-        const metodoPago = document.getElementById('pago-metodo-tpv').value; // Keep original ID
-        const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
         
-        console.log('💳 TPV Datos pago:', { total, metodoPago, montoRecibido });
-        
-        if (!metodoPago) { // Added check for payment method
-            Toastify({
-                text: "⚠️ Selecciona un método de pago",
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#f39c12"
-            }).showToast();
-            return;
-        }
-        if (metodoPago === 'efectivo' && montoRecibido < total) {
+        // Validar que hay pagos agregados
+        if (this.pagos.length === 0) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Monto insuficiente',
-                text: 'El monto recibido es menor al total a pagar.',
+                title: 'Sin métodos de pago',
+                text: 'Debes agregar al menos un método de pago.',
                 confirmButtonColor: '#3498db'
             });
             return;
         }
+        
+        // Detectar moneda del total (búsqueda insensible a mayúsculas/minúsculas)
+        const totalEnBs = /bs/i.test(totalFullText);
+        
+        // Calcular total pagado en USD
+        const totalPagadoUSD = this.pagos.reduce((sum, pago) => {
+            if (pago.currency === 'USD') {
+                return sum + pago.amount;
+            } else {
+                return sum + (pago.amount / this.exchangeRate);
+            }
+        }, 0);
+        
+        // ===== VALIDACIÓN DE PAGO SUFICIENTE (v3.0) =====
+        // Convertir todo a USD para comparar manzanas con manzanas
+        const totalEnUSD = totalEnBs ? (total / this.exchangeRate) : total;
+        const faltaEnUSD = totalEnUSD - totalPagadoUSD;
+        
+        console.log('🔍 VALIDACIÓN v3.0:', { 
+            totalEnUSD: totalEnUSD.toFixed(4),
+            totalPagadoUSD: totalPagadoUSD.toFixed(4),
+            faltaEnUSD: faltaEnUSD.toFixed(6),
+            bloqueado: faltaEnUSD > 0.01
+        });
+        
+        // Solo bloquear si falta MÁS de 1 centavo
+        if (faltaEnUSD > 0.01) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Monto insuficiente',
+                html: `<p>Falta por pagar: <b>$${faltaEnUSD.toFixed(2)} USD</b> / <b>Bs${(faltaEnUSD * this.exchangeRate).toFixed(2)}</b></p>
+                       <hr>
+                       <small style="color:#999">
+                       Total: $${totalEnUSD.toFixed(2)} USD<br>
+                       Pagado: $${totalPagadoUSD.toFixed(2)} USD<br>
+                       Diferencia exacta: $${faltaEnUSD.toFixed(4)}
+                       </small>`,
+                confirmButtonColor: '#3498db'
+            });
+            return;
+        }
+        
+        console.log('💳 TPV Datos pago:', { total, totalPagadoUSD, pagos: this.pagos });
         
         // Separar productos y servicios
         const productos = this.carrito.filter(item => item.tipo === 'producto');
@@ -612,9 +841,11 @@ const TPV = {
                 quantity: servicio.cantidad
             })) : [],
             customer_id: this.cliente ? this.cliente.id : null,
-            payment_method_id: parseInt(metodoPago),
-            payment_currency: parseInt(metodoPago) === 1 ? 'USD' : 'Bs', // ID 1 = Dólares
-            amount_received: montoRecibido,
+            payments: this.pagos.map(pago => ({
+                payment_method_id: pago.payment_method_id,
+                amount: pago.amount,
+                currency: pago.currency
+            })),
             total: total
         };
         
@@ -691,6 +922,22 @@ const TPV = {
             })
             .catch(error => {
                 console.error('TPV Error completo:', error);
+                
+                // Handle CSRF token mismatch
+                if (error.message && error.message.includes('CSRF')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesión expirada',
+                        html: 'Tu sesión ha expirado. Por favor, <b>recarga la página</b> (F5) e intenta de nuevo.',
+                        confirmButtonText: 'Recargar página',
+                        confirmButtonColor: '#3498db'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                    return;
+                }
                 
                 // Handle validation errors with friendly messages
                 if (error.validation && error.errors) {
@@ -821,6 +1068,7 @@ const TPV = {
     ejecutarLimpieza: function() {
         this.carrito = [];
         this.cliente = null;
+        this.pagos = []; // Reset payments array
         
         // Reset selects
         document.getElementById('producto-select-tpv').selectedIndex = 0;
@@ -828,7 +1076,8 @@ const TPV = {
         document.getElementById('cliente-rfc-input').value = '';
         
         // Reset payment fields
-        document.getElementById('monto-tpv').value = '';
+        document.getElementById('monto-pago-tpv').value = '';
+        document.getElementById('pago-metodo-tpv').selectedIndex = 0;
         
         // Hide customer info
         document.getElementById('cliente-info-tpv').style.display = 'none';
@@ -839,6 +1088,7 @@ const TPV = {
         document.getElementById('servicio-select-tpv').disabled = false;
         
         this.actualizarVistaCarrito();
+        this.actualizarVistaPagos(); // Update payment view
     },
     
     // Debug

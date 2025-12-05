@@ -61,9 +61,10 @@ class SalesController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'payment_method_id' => 'required|exists:payment_method,id',
-            'payment_currency' => 'required|in:Bs,USD',
-            'amount_received' => 'required|numeric|min:0',
+            'payments' => 'required|array|min:1',
+            'payments.*.payment_method_id' => 'required|exists:payment_method,id',
+            'payments.*.amount' => 'required|numeric|min:0.01',
+            'payments.*.currency' => 'required|in:Bs,USD',
             'total' => 'required|numeric|min:0',
             'items' => 'nullable|array',
             'items.*.product_id' => 'required_with:items|exists:products,id',
@@ -76,9 +77,12 @@ class SalesController extends Controller
         ], [
             'customer_id.required' => 'Debe seleccionar un cliente',
             'customer_id.exists' => 'El cliente seleccionado no existe',
-            'payment_method_id.required' => 'Debe seleccionar un método de pago',
-            'amount_received.required' => 'Debe ingresar el monto recibido',
-            'amount_received.min' => 'El monto recibido debe ser mayor a 0',
+            'payments.required' => 'Debe agregar al menos un método de pago',
+            'payments.min' => 'Debe agregar al menos un método de pago',
+            'payments.*.payment_method_id.required' => 'Método de pago requerido',
+            'payments.*.amount.required' => 'Monto de pago requerido',
+            'payments.*.amount.min' => 'El monto debe ser mayor a 0',
+            'payments.*.currency.required' => 'Moneda requerida',
             'total.required' => 'El total de la venta es requerido',
             'total.min' => 'El total debe ser mayor a 0',
             'items.*.product_id.exists' => 'Uno de los productos seleccionados no existe',
@@ -140,23 +144,54 @@ class SalesController extends Controller
             $taxes = $subtotal * 0.16; // IVA 16%
             $total = $subtotal + $taxes;
 
-            // Calcular cambio
-            $change = $validated['amount_received'] - $total;
+            // Obtener tasa de cambio
+            $exchangeRate = $cashRegister->exchangeRate->rate ?? 1;
 
-            // Crear la venta
+            // Calcular total pagado convirtiendo todo a USD primero
+            $totalPaidUSD = 0;
+            foreach ($validated['payments'] as $payment) {
+                if ($payment['currency'] === 'USD') {
+                    $totalPaidUSD += $payment['amount'];
+                } else {
+                    // Convertir Bs a USD
+                    $totalPaidUSD += ($payment['amount'] / $exchangeRate);
+                }
+            }
+            
+            // Validar que el total pagado sea suficiente (comparar en USD)
+            if ($totalPaidUSD < $total) {
+                return response()->json([
+                    'error' => 'El monto pagado es insuficiente. Total: $' . number_format($total, 2) . ' USD, Pagado: $' . number_format($totalPaidUSD, 2) . ' USD'
+                ], 400);
+            }
+            
+            $change = $totalPaidUSD - $total;
+
+            // Crear la venta (usar primer método de pago como principal para compatibilidad)
+            $primaryPayment = $validated['payments'][0];
             $sale = Sale::create([
                 'user_id' => Auth::id(),
                 'cash_register_id' => $cashRegister->id,
                 'customer_id' => $validated['customer_id'],
-                'payment_currency' => $validated['payment_currency'],
-                'exchange_rate_used' => $cashRegister->exchangeRate->rate ?? null,
+                'payment_currency' => $primaryPayment['currency'],
+                'exchange_rate_used' => $exchangeRate,
                 'taxes' => $taxes,
-                'payment_method_id' => $validated['payment_method_id'],
-                'amount_received' => $validated['amount_received'],
+                'payment_method_id' => $primaryPayment['payment_method_id'],
+                'amount_received' => $totalPaidUSD,
                 'change' => $change,
                 'status' => 'completada',
                 'invoice_printed' => false
             ]);
+
+            // Crear los registros de pagos
+            foreach ($validated['payments'] as $payment) {
+                \App\Models\SalePayment::create([
+                    'sale_id' => $sale->invoice_number,
+                    'payment_method_id' => $payment['payment_method_id'],
+                    'amount' => $payment['amount'],
+                    'currency' => $payment['currency']
+                ]);
+            }
 
             // Crear los items de la venta y actualizar stock (si hay productos)
             if (!empty($validated['items'])) {

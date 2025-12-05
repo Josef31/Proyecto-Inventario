@@ -82,6 +82,14 @@ class Sale extends Model
     }
 
     /**
+     * Relación con los pagos de la venta
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SalePayment::class, 'sale_id', 'invoice_number');
+    }
+
+    /**
      * Boot del modelo para generar código de venta automáticamente
      */
     protected static function boot()
