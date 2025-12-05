@@ -49,9 +49,8 @@ class DashboardController extends Controller
                 ->sum('total'); // Using the accessor from Sale model
         }
 
-        // Low Stock Products (stock < 10)
-        $lowStockProducts = Product::where('stock_initial', '<', 10)
-            ->where('stock_initial', '>', 0)
+        // Low Stock Products (stock <= 10)
+        $lowStockProducts = Product::where('stock_initial', '<=', 10)
             ->orderBy('stock_initial', 'asc')
             ->limit(10)
             ->get();

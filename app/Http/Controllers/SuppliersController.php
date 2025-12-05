@@ -12,7 +12,7 @@ class SuppliersController extends Controller
      */
     public function index()
     {
-        $suppliers = Supplier::orderBy('id', 'desc')->get();
+        $suppliers = Supplier::where('is_active', true)->orderBy('id', 'desc')->get();
         return view('suppliers.index', compact('suppliers'));
     }
 
@@ -31,9 +31,33 @@ class SuppliersController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50',
+            'rfc' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'is_active' => 'boolean',
         ]);
 
         try {
+            // Si se proporcionó RFC, verificar si ya existe
+            if (!empty($validated['rfc'])) {
+                $existingSupplier = Supplier::where('rfc', $validated['rfc'])->first();
+                
+                if ($existingSupplier) {
+                    // Si existe y está activo, mostrar advertencia
+                    if ($existingSupplier->is_active) {
+                        return redirect()->back()
+                            ->with('error', '⚠️ Ya existe un proveedor activo con el RFC: ' . $validated['rfc'])
+                            ->withInput();
+                    }
+                    
+                    // Si existe pero está inactivo, solo reactivarlo (sin modificar datos)
+                    $existingSupplier->update(['is_active' => true]);
+                    
+                    return redirect()->route('suppliers.index')
+                        ->with('success', '✅ Proveedor reactivado exitosamente: ' . $existingSupplier->name);
+                }
+            }
+            
+            // Si no existe, crear nuevo proveedor
             Supplier::create($validated);
             return redirect()->route('suppliers.index')->with('success', '¡Proveedor creado exitosamente!');
         } catch (\Exception $e) {
@@ -59,6 +83,8 @@ class SuppliersController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:50',
+            'rfc' => 'required|string|max:255|unique:suppliers,rfc,' . $id,
+            'phone' => 'required|string|max:20',
         ]);
 
         try {
@@ -76,10 +102,11 @@ class SuppliersController extends Controller
     {
         try {
             $supplier = Supplier::findOrFail($id);
-            $supplier->delete();
-            return redirect()->route('suppliers.index')->with('success', '¡Proveedor eliminado exitosamente!');
+            \Illuminate\Support\Facades\Log::info('Desactivando proveedor: ' . $supplier->id);
+            $supplier->update(['is_active' => false]);
+            return redirect()->route('suppliers.index')->with('success', '¡Proveedor desactivado exitosamente! (Soft Delete)');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al desactivar el proveedor: ' . $e->getMessage());
         }
     }
 }

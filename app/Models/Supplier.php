@@ -13,5 +13,8 @@ class Supplier extends Model
 
     protected $fillable = [
         'name',
+        'rfc',
+        'phone',
+        'is_active',
     ];
 }

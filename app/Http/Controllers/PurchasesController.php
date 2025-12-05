@@ -21,7 +21,7 @@ class PurchasesController extends Controller
             ->orderBy('purchase_date', 'desc')
             ->get();
         
-        $suppliers = Supplier::orderBy('name')->get();
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
         $products = Product::orderBy('name')->get();
         
         return view('purchases.index', compact('purchases', 'suppliers', 'products'));

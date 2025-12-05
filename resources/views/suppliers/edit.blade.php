@@ -15,7 +15,7 @@
         </div>
 
         <div class="seccion-formulario">
-            <h3>EDITAR PROVEEDOR</h3>
+            <h3>EDITAR PROVEEDOR (V2)</h3>
             
             <form method="POST" action="{{ route('suppliers.update', $supplier->id) }}">
                 @csrf
@@ -23,6 +23,13 @@
                 
                 <label for="nombre">Nombre del Proveedor:</label>
                 <input type="text" id="nombre" name="name" value="{{ old('name', $supplier->name) }}" required placeholder="Ej. Distribuidora XYZ" maxlength="50">
+                
+                <label for="rfc">RFC (opcional):</label>
+                <input type="text" id="rfc" name="rfc" value="{{ old('rfc', $supplier->rfc) }}" placeholder="Ej. ABC123456XYZ" maxlength="255">
+                
+                <label for="phone">Teléfono (opcional):</label>
+                <input type="text" id="phone" name="phone" value="{{ old('phone', $supplier->phone) }}" placeholder="Ej. +58 412-1234567" maxlength="20">
+                
                 
                 <button type="submit" class="btn-listo">Actualizar Proveedor</button>
                 <a href="{{ route('suppliers.index') }}" class="btn-cancelar" style="display: inline-block; text-align: center; margin-top: 10px;">Cancelar</a>
@@ -32,26 +39,27 @@
 
     <main class="seccion-inventario">
         <div class="cabecera-inventario">
-            <h2>Editar Proveedor: {{ $supplier->name }}</h2>
-            
-            @if (session('error'))
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>{{ session('error') }}</p>
-                </div>
-            @endif
-            @if ($errors->any())
-                <div class="alerta-error" style="display: flex; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
-                    <span class="icono-ayuda">✗</span>
-                    <p>Error de validación: {{ $errors->first() }}</p>
-                </div>
-            @endif
+            <h2>Editar Proveedor</h2>
         </div>
 
-        <div style="padding: 20px;">
-            <p><strong>ID:</strong> {{ $supplier->id }}</p>
-            <p><strong>Nombre Actual:</strong> {{ $supplier->name }}</p>
-        </div>
+        <table class="tabla-inventario">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>RFC</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ $supplier->id }}</td>
+                    <td>{{ $supplier->name }}</td>
+                    <td>{{ $supplier->rfc ?? 'N/A' }}</td>
+                    <td>{{ $supplier->phone ?? 'N/A' }}</td>
+                </tr>
+            </tbody>
+        </table>
     </main>
 </div>
 @endsection
