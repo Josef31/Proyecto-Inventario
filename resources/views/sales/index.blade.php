@@ -567,7 +567,7 @@ const TPV = {
         
         console.log('✅ TPV: Carrito OK, continuando...');
         
-        const totalTexto = document.getElementById('total-tpv').textContent.replace('$', '');
+        const totalTexto = document.getElementById('total-tpv').textContent.replace(/[$Bs]/g, '').trim();
         const total = parseFloat(totalTexto);
         const metodoPago = document.getElementById('pago-metodo-tpv').value; // Keep original ID
         const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;

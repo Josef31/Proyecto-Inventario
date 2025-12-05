@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/inventory/{id}', [InventoryController::class, 'update'])->name('inventory.update');
         Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
         Route::get('/inventory/adjustment', [InventoryController::class, 'showAdjustmentForm'])->name('inventory.adjustment.form');
+        Route::post('/inventory/import', [InventoryController::class, 'importProducts'])->name('inventory.import');
 
         // Rutas para clientes
         Route::resource('customers', CustomersController::class);

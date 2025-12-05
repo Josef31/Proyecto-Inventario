@@ -55,8 +55,10 @@
         {{-- 🚨 CORRECCIÓN: Estilo para centrar el botón --}}
         <div class="seccion-acciones-admin" style="text-align: center;"> 
             <h3>ACCIONES ADMIN</h3>
-            {{-- Botón Ajuste de Inventario (Placeholder) --}}
-            <a href="{{ route('inventory.adjustment.form') }}" class="btn-admin-accion btn-ajuste-stock">Ajuste de Inventario</a>
+            {{-- Botón Importar Datos Masivamente --}}
+            <button type="button" class="btn-admin-accion btn-ajuste-stock" onclick="mostrarModalImportacion()">
+                📊 Importar Datos Masivamente
+            </button>
         </div>
     </aside>
 
@@ -120,8 +122,211 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
+    // ========================================
+    // FUNCIONES PARA IMPORTACIÓN MASIVA (GLOBALES)
+    // ========================================
+    
+    function mostrarModalImportacion() {
+        Swal.fire({
+            title: '📊 Importar Datos Masivamente',
+            html: `
+                <p style="margin-bottom: 20px;">Selecciona una opción:</p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button onclick="mostrarInstrucciones()" class="swal2-confirm swal2-styled" style="background-color: #3498db;">
+                        📋 Ver Instrucciones
+                    </button>
+                    <button onclick="mostrarUpload()" class="swal2-confirm swal2-styled" style="background-color: #27ae60;">
+                        📤 Subir Excel
+                    </button>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Cerrar',
+            width: '500px'
+        });
+    }
+    
+    function mostrarInstrucciones() {
+        Swal.fire({
+            title: '📋 Formato del Archivo Excel',
+            html: `
+                <div style="text-align: left; padding: 10px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 10px;">Columnas Requeridas:</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                        <thead>
+                            <tr style="background-color: #34495e; color: white;">
+                                <th style="padding: 8px; border: 1px solid #ddd;">Columna</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Tipo</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Ejemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>name</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Texto</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Laptop Dell</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>id_classification</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Número (1-5)</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>price_buy</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Decimal</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">850.50</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>price_sell</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Decimal</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">1199.99</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>stock_initial</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Entero</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">15</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>stock_minimum</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Entero</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">5</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>expiration_date</strong></td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Fecha (opcional)</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">31/12/2028</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style="background-color: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <strong>⚠️ Importante:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            <li>La primera fila debe contener los nombres de las columnas</li>
+                            <li>El precio de venta debe ser al menos 30% mayor al de compra</li>
+                            <li>Las fechas deben estar en formato DD/MM/YYYY o dejar "N/A"</li>
+                            <li>Archivo máximo: 5MB</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            confirmButtonText: '✅ Entendido',
+            confirmButtonColor: '#27ae60',
+            width: '700px'
+        });
+    }
+    
+    function mostrarUpload() {
+        Swal.fire({
+            title: '📤 Subir Archivo Excel',
+            html: `
+                <form id="form-import-excel" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <div style="margin: 20px 0;">
+                        <label for="excel-file" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                            Selecciona tu archivo Excel:
+                        </label>
+                        <input type="file" 
+                               id="excel-file" 
+                               name="excel_file" 
+                               accept=".xlsx,.xls" 
+                               required
+                               style="padding: 10px; border: 2px dashed #3498db; border-radius: 5px; width: 100%;">
+                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">
+                            Formatos aceptados: .xlsx, .xls (Máx. 5MB)
+                        </small>
+                    </div>
+                </form>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '📥 Importar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#27ae60',
+            preConfirm: () => {
+                const fileInput = document.getElementById('excel-file');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    Swal.showValidationMessage('Por favor selecciona un archivo');
+                    return false;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.showValidationMessage('El archivo no debe superar 5MB');
+                    return false;
+                }
+                
+                return file;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                procesarImportacion(result.value);
+            }
+        });
+    }
+    
+    function procesarImportacion(file) {
+        const formData = new FormData();
+        formData.append('excel_file', file);
+        formData.append('_token', '{{ csrf_token() }}');
+        
+        Swal.fire({
+            title: 'Procesando...',
+            html: 'Importando productos, por favor espera...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        fetch('{{ route("inventory.import") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Importación Exitosa!',
+                    html: `
+                        <p><strong>${data.imported}</strong> productos importados correctamente</p>
+                        ${data.errors && data.errors.length > 0 ? 
+                            `<p style="color: #e74c3c; margin-top: 10px;">
+                                <strong>${data.errors.length}</strong> filas con errores (omitidas)
+                            </p>` : ''}
+                    `,
+                    confirmButtonColor: '#27ae60'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en la Importación',
+                    text: data.message || 'Ocurrió un error al procesar el archivo',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al procesar la solicitud',
+                confirmButtonColor: '#e74c3c'
+            });
+        });
+    }
+    
+    // ========================================
+    // OTRAS FUNCIONES
+    // ========================================
+    
     // Cálculo local del precio de venta mínimo (UX)
     document.addEventListener('DOMContentLoaded', function() {
         const precioCompraInput = document.getElementById('precio-compra');
@@ -142,4 +347,4 @@
         }
     });
 </script>
-@endsection
+@endpush

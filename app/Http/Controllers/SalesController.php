@@ -79,6 +79,8 @@ class SalesController extends Controller
             'payment_method_id.required' => 'Debe seleccionar un método de pago',
             'amount_received.required' => 'Debe ingresar el monto recibido',
             'amount_received.min' => 'El monto recibido debe ser mayor a 0',
+            'total.required' => 'El total de la venta es requerido',
+            'total.min' => 'El total debe ser mayor a 0',
             'items.*.product_id.exists' => 'Uno de los productos seleccionados no existe',
             'items.*.quantity.min' => 'La cantidad debe ser al menos 1',
             'services.*.service_id.exists' => 'Uno de los servicios seleccionados no existe',
