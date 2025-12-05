@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Top Selling Products (by quantity)
         $topSellingProducts = SaleItem::select('sale_items.product_id', 'products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
@@ -104,18 +104,21 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->first();
 
-        // Recent Sales (last 5)
+        // Get date filter from request (default to today)
+        $filterDate = $request->input('date', now()->format('Y-m-d'));
+
+        // Recent Sales (filtered by date)
         $recentSales = Sale::select('sales.*', 'customers.name as customer_name')
             ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
             ->where('sales.status', 'completada')
+            ->whereDate('sales.created_at', $filterDate)
             ->orderBy('sales.created_at', 'desc')
-            ->limit(5)
             ->get();
 
-        // Recent Purchases (last 5)
+        // Recent Purchases (filtered by date)
         $recentPurchases = Purchase::with('supplier')
+            ->whereDate('created_at', $filterDate)
             ->orderBy('created_at', 'desc')
-            ->limit(5)
             ->get();
 
         // Total Customers
@@ -141,7 +144,8 @@ class DashboardController extends Controller
             'recentSales',
             'recentPurchases',
             'totalCustomers',
-            'newCustomers'
+            'newCustomers',
+            'filterDate'
         ));
     }
 }
