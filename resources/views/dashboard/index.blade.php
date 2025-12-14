@@ -11,6 +11,8 @@
 <!-- DataTables CSS from CDN -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<!-- FontAwesome for Buttons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 @endpush
 
 @section('content')
@@ -173,134 +175,68 @@
 
     /* Buttons Container */
     .dt-buttons {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+        display: inline-flex;
+        gap: 5px;
+        margin-left: 10px;
+        vertical-align: middle;
     }
 
-    /* Export Buttons */
+    /* Ensure buttons look like Bootstrap buttons even if DataTables adds its own classes */
     .dt-button {
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+    }
+
+    .dt-button.btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: middle;
-        user-select: none;
-        border: 1px solid transparent;
-        padding: 10px 20px !important;
-        font-size: 13px !important;
-        line-height: 1.5;
-        border-radius: 8px !important;
-        transition: all 0.2s ease-in-out !important;
-        cursor: pointer !important;
-        text-decoration: none !important;
-        margin: 0 !important;
-        letter-spacing: 0.3px;
-        text-transform: uppercase;
+        padding: 0.5rem 1rem !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        transition: all 0.2s ease !important;
     }
 
-    .dt-button.btn-secondary {
-        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
-        border-color: #6c757d !important;
-        color: #fff !important;
-        box-shadow: 0 3px 6px rgba(108, 117, 125, 0.25), 0 1px 3px rgba(0, 0, 0, 0.08);
+    .dt-button.btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.15) !important;
     }
 
-    .dt-button.btn-secondary:hover {
-        background: linear-gradient(135deg, #5c636a 0%, #4e555b 100%) !important;
-        border-color: #565e64 !important;
-        box-shadow: 0 5px 12px rgba(108, 117, 125, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
-        transform: translateY(-2px);
+    /* Specific colors to ensure they stick */
+    .dt-button.btn-secondary { background-color: #6c757d !important; }
+    .dt-button.btn-success { background-color: #198754 !important; }
+    .dt-button.btn-danger { background-color: #dc3545 !important; }
+    .dt-button.btn-info { 
+        background-color: #0dcaf0 !important; 
+        color: #000 !important; /* Info usually has black text */
     }
 
-    .dt-button.btn-secondary:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
-    }
-
-    .dt-button.btn-success {
-        background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
-        border-color: #198754 !important;
-        color: #fff !important;
-        box-shadow: 0 3px 6px rgba(25, 135, 84, 0.25), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .dt-button.btn-success:hover {
-        background: linear-gradient(135deg, #157347 0%, #0f5132 100%) !important;
-        border-color: #146c43 !important;
-        box-shadow: 0 5px 12px rgba(25, 135, 84, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
-        transform: translateY(-2px);
-    }
-
-    .dt-button.btn-success:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
-    }
-
-    .dt-button.btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%) !important;
-        border-color: #dc3545 !important;
-        color: #fff !important;
-        box-shadow: 0 3px 6px rgba(220, 53, 69, 0.25), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .dt-button.btn-danger:hover {
-        background: linear-gradient(135deg, #bb2d3b 0%, #9a2530 100%) !important;
-        border-color: #b02a37 !important;
-        box-shadow: 0 5px 12px rgba(220, 53, 69, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
-        transform: translateY(-2px);
-    }
-
-    .dt-button.btn-danger:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
-    }
-
-    .dt-button.btn-info {
-        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
-        border-color: #0dcaf0 !important;
-        color: #000 !important;
-        font-weight: 700 !important;
-        box-shadow: 0 3px 6px rgba(13, 202, 240, 0.25), 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-
-    .dt-button.btn-info:hover {
-        background: linear-gradient(135deg, #31d2f2 0%, #0dcaf0 100%) !important;
-        border-color: #25cff2 !important;
-        box-shadow: 0 5px 12px rgba(13, 202, 240, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
-        transform: translateY(-2px);
-    }
-
-    .dt-button.btn-info:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(13, 202, 240, 0.2);
-    }
-
-    /* Search and Length Controls */
+    /* Search and Length Controls - Reset floats for Flexbox */
     .dataTables_wrapper .dataTables_filter {
-        float: right;
         text-align: right;
-        margin-bottom: 15px;
+        margin-bottom: 0;
     }
 
     .dataTables_wrapper .dataTables_filter label {
         font-weight: 500;
         color: #495057;
+        display: inline-flex;
+        align-items: center;
     }
 
     .dataTables_wrapper .dataTables_filter input {
-        padding: 8px 12px;
+        padding: 0.375rem 0.75rem;
         border: 1px solid #ced4da;
-        border-radius: 6px;
-        margin-left: 10px;
-        font-size: 14px;
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+        font-size: 0.875rem;
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        pointer-events: auto !important;
-        user-select: text !important;
-        cursor: text !important;
     }
 
     .dataTables_wrapper .dataTables_filter input:focus {
@@ -310,25 +246,27 @@
     }
 
     .dataTables_wrapper .dataTables_length {
-        float: left;
-        margin-bottom: 15px;
+        margin-bottom: 0;
+        margin-right: 10px;
     }
 
     .dataTables_wrapper .dataTables_length label {
         font-weight: 500;
         color: #495057;
+        display: inline-flex;
+        align-items: center;
     }
 
     .dataTables_wrapper .dataTables_length select {
-        padding: 8px 32px 8px 12px;
+        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
         border: 1px solid #ced4da;
-        border-radius: 6px;
-        margin: 0 10px;
-        font-size: 14px;
+        border-radius: 0.25rem;
+        margin: 0 0.5rem;
+        font-size: 0.875rem;
         background-color: #fff;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
-        background-position: right 8px center;
+        background-position: right 0.75rem center;
         background-size: 16px 12px;
         appearance: none;
     }
@@ -348,16 +286,16 @@
 
     .dataTables_wrapper .dataTables_paginate .paginate_button {
         display: inline-block;
-        padding: 8px 12px !important;
-        margin: 0 3px !important;
-        font-size: 14px;
+        padding: 0.375rem 0.75rem !important;
+        margin: 0 2px !important;
+        font-size: 0.875rem;
         font-weight: 500;
         line-height: 1.5;
         color: #0d6efd !important;
         text-decoration: none;
         background-color: #fff !important;
         border: 1px solid #dee2e6 !important;
-        border-radius: 6px !important;
+        border-radius: 0.25rem !important;
         transition: all 0.15s ease-in-out;
         cursor: pointer !important;
     }
@@ -394,7 +332,7 @@
         clear: both;
         float: left;
         padding-top: 15px;
-        font-size: 14px;
+        font-size: 0.875rem;
         color: #6c757d;
         font-weight: 400;
     }
@@ -402,8 +340,8 @@
     /* Table Styling */
     .dataTables_wrapper table.dataTable {
         clear: both;
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
         max-width: none !important;
         border-collapse: separate !important;
     }
@@ -689,33 +627,33 @@
 <script>
 // Use jQuery in noConflict mode to avoid conflicts with other libraries
 jQuery(document).ready(function($) {
-    // Initialize DataTables for Ventas
-    var ventasTable = $('#ventas-table').DataTable({
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        pageLength: 10,
-        buttons: [
+    try {
+        // Define buttons configuration
+        var exportButtons = [
             {
                 extend: 'copy',
-                text: 'Copiar',
+                text: '<i class="fas fa-copy"></i> Copiar',
                 className: 'btn btn-secondary btn-sm'
             },
             {
                 extend: 'excel',
-                text: 'Excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
                 className: 'btn btn-success btn-sm'
             },
             {
                 extend: 'pdf',
-                text: 'PDF',
+                text: '<i class="fas fa-file-pdf"></i> PDF',
                 className: 'btn btn-danger btn-sm'
             },
             {
                 extend: 'print',
-                text: 'Imprimir',
+                text: '<i class="fas fa-print"></i> Imprimir',
                 className: 'btn btn-info btn-sm'
             }
-        ],
-        language: {
+        ];
+
+        // Define language configuration
+        var languageConfig = {
             search: "Buscar:",
             lengthMenu: "Mostrar _MENU_ registros",
             info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
@@ -727,70 +665,51 @@ jQuery(document).ready(function($) {
                 next: "Siguiente",
                 previous: "Anterior"
             },
-            emptyTable: "No hay ventas recientes para esta fecha"
-        }
-    });
+            emptyTable: "No hay datos disponibles"
+        };
 
-    // Add buttons to Ventas table
-    ventasTable.buttons().container()
-        .appendTo('#ventas-table_wrapper .col-md-6:eq(0)');
+        // DOM Configuration for Bootstrap 5
+        // l = length, B = buttons, f = filter, t = table, i = info, p = pagination
+        var domConfig = 
+            "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center'lB><'col-sm-12 col-md-6'f>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>";
 
-    // Initialize DataTables for Compras
-    var comprasTable = $('#compras-table').DataTable({
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        pageLength: 10,
-        buttons: [
-            {
-                extend: 'copy',
-                text: 'Copiar',
-                className: 'btn btn-secondary btn-sm'
-            },
-            {
-                extend: 'excel',
-                text: 'Excel',
-                className: 'btn btn-success btn-sm'
-            },
-            {
-                extend: 'pdf',
-                text: 'PDF',
-                className: 'btn btn-danger btn-sm'
-            },
-            {
-                extend: 'print',
-                text: 'Imprimir',
-                className: 'btn btn-info btn-sm'
-            }
-        ],
-        language: {
-            search: "Buscar:",
-            lengthMenu: "Mostrar _MENU_ registros",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-            infoEmpty: "Mostrando 0 a 0 de 0 registros",
-            infoFiltered: "(filtrado de _MAX_ registros totales)",
-            paginate: {
-                first: "Primero",
-                last: "Último",
-                next: "Siguiente",
-                previous: "Anterior"
-            },
-            emptyTable: "No hay compras recientes para esta fecha"
-        }
-    });
+        // Initialize DataTables for Ventas
+        $('#ventas-table').DataTable({
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            pageLength: 10,
+            dom: domConfig,
+            buttons: exportButtons,
+            language: $.extend({}, languageConfig, {
+                emptyTable: "No hay ventas recientes para esta fecha"
+            })
+        });
 
-    // Add buttons to Compras table
-    comprasTable.buttons().container()
-        .appendTo('#compras-table_wrapper .col-md-6:eq(0)');
+        // Initialize DataTables for Compras
+        $('#compras-table').DataTable({
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            pageLength: 10,
+            dom: domConfig,
+            buttons: exportButtons,
+            language: $.extend({}, languageConfig, {
+                emptyTable: "No hay compras recientes para esta fecha"
+            })
+        });
 
-    // Date filter handlers
-    $('#sales-date-filter').on('change', function() {
-        var selectedDate = $(this).val();
-        window.location.href = '{{ route("dashboard.index") }}?date=' + selectedDate;
-    });
+        // Date filter handlers
+        $('#sales-date-filter').on('change', function() {
+            var selectedDate = $(this).val();
+            window.location.href = '{{ route("dashboard.index") }}?date=' + selectedDate;
+        });
 
-    $('#purchases-date-filter').on('change', function() {
-        var selectedDate = $(this).val();
-        window.location.href = '{{ route("dashboard.index") }}?date=' + selectedDate;
-    });
+        $('#purchases-date-filter').on('change', function() {
+            var selectedDate = $(this).val();
+            window.location.href = '{{ route("dashboard.index") }}?date=' + selectedDate;
+        });
+    } catch (error) {
+        console.error('DataTables Initialization Error:', error);
+    }
 });
 </script>
 @endsection
