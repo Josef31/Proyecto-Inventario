@@ -27,12 +27,22 @@ class InventoryController extends Controller
             'price_sell' => 'required|numeric|min:0',
             'stock_initial' => 'required|integer|min:0',
             'stock_minimum' => 'required|integer|min:0',
-            'expiration_date' => 'nullable|date',
+            'expiration_date' => 'nullable|date|after_or_equal:today',
         ]);
 
         $minSellPrice = $validated['price_buy'] * 1.3;
         if ($validated['price_sell'] < $minSellPrice) {
             return redirect()->back()->withErrors(['price_sell' => 'El precio de venta no cumple con el margen mínimo del 30% requerido.'])->withInput();
+        }
+
+        // Validar fecha de vencimiento y mostrar advertencia si está próxima
+        if (isset($validated['expiration_date'])) {
+            $expirationDate = \Carbon\Carbon::parse($validated['expiration_date']);
+            $daysUntilExpiration = now()->diffInDays($expirationDate, false);
+            
+            if ($daysUntilExpiration < 30 && $daysUntilExpiration >= 0) {
+                session()->flash('warning', "⚠️ Advertencia: Este producto vence en {$daysUntilExpiration} días.");
+            }
         }
 
         try {
@@ -62,12 +72,22 @@ class InventoryController extends Controller
             'price_sell' => 'required|numeric|min:0',
             'stock_initial' => 'required|integer|min:0',
             'stock_minimum' => 'required|integer|min:0',
-            'expiration_date' => 'nullable|date',
+            'expiration_date' => 'nullable|date|after_or_equal:today',
         ]);
         
         $minSellPrice = $validated['price_buy'] * 1.3;
         if ($validated['price_sell'] < $minSellPrice) {
             return redirect()->back()->withErrors(['price_sell' => 'El precio de venta no cumple con el margen mínimo del 30% requerido.'])->withInput();
+        }
+
+        // Validar fecha de vencimiento y mostrar advertencia si está próxima
+        if (isset($validated['expiration_date'])) {
+            $expirationDate = \Carbon\Carbon::parse($validated['expiration_date']);
+            $daysUntilExpiration = now()->diffInDays($expirationDate, false);
+            
+            if ($daysUntilExpiration < 30 && $daysUntilExpiration >= 0) {
+                session()->flash('warning', "⚠️ Advertencia: Este producto vence en {$daysUntilExpiration} días.");
+            }
         }
 
         try {

@@ -78,6 +78,13 @@
                     </a>
                 @endif
                 
+                {{-- Consumos - Solo Gerente y Admin --}}
+                @if(auth()->user()->canAccess('inventory'))
+                    <a href="{{ route('consumption.index') }}" class="{{ request()->routeIs('consumption.*') ? 'active' : '' }}">
+                        Consumos
+                    </a>
+                @endif
+                
                 {{-- Tasas de Cambio - Solo Gerente y Admin --}}
                 @if(auth()->user()->canAccess('exchange_rates'))
                     <a href="{{ route('exchange_rates.index') }}" class="{{ request()->routeIs('exchange_rates.*') ? 'active' : '' }}">
@@ -91,6 +98,26 @@
                         Usuarios
                     </a>
                 @endif
+            </div>
+            
+            {{-- Notification Bell --}}
+            @php
+                // Productos con stock bajo: stock <= stock_minimum * 5
+                $lowStockProducts = \App\Models\Product::whereRaw('stock_initial <= stock_minimum * 5')
+                    ->orderBy('stock_initial', 'asc')
+                    ->get();
+                $notificationCount = $lowStockProducts->count();
+            @endphp
+            
+            <div class="notification-bell" style="position: relative; margin-right: 20px;">
+                <button data-bs-toggle="modal" data-bs-target="#notificationModal" style="background: none; border: none; cursor: pointer; position: relative; padding: 8px; font-size: 24px;">
+                    🔔
+                    @if($notificationCount > 0)
+                        <span class="notification-badge" style="position: absolute; top: 0; right: 0; background-color: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            {{ $notificationCount > 9 ? '9+' : $notificationCount }}
+                        </span>
+                    @endif
+                </button>
             </div>
             
             {{-- User Info & Logout --}}
@@ -151,6 +178,90 @@
     
     <script src="{{ asset('js/admin-system.js') }}"></script>
     <script src="{{ asset('js/delete-confirmation.js') }}"></script>
+    
+    {{-- Notification Bell JavaScript --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                // Toggle dropdown on button click
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = notificationDropdown.style.display === 'block';
+                    notificationDropdown.style.display = isVisible ? 'none' : 'block';
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                        notificationDropdown.style.display = 'none';
+    <!-- Modal de Notificaciones -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                    <h5 class="modal-title" id="notificationModalLabel" style="color: #333;">
+                        ⚠️ Productos con Stock Bajo
+                        @if(isset($notificationCount) && $notificationCount > 0)
+                            <span class="badge bg-danger ms-2">{{ $notificationCount }}</span>
+                        @endif
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    @if(isset($lowStockProducts) && $lowStockProducts->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Producto</th>
+                                        <th class="text-center">Stock Actual</th>
+                                        <th class="text-center">Stock Mínimo</th>
+                                        <th class="text-end pe-4">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($lowStockProducts as $product)
+                                        <tr>
+                                            <td class="ps-4 align-middle">
+                                                <strong>{{ $product->name }}</strong>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <span class="badge {{ $product->stock_initial == 0 ? 'bg-danger' : 'bg-warning text-dark' }}" style="font-size: 0.9em;">
+                                                    {{ $product->stock_initial }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                {{ $product->stock_minimum }}
+                                            </td>
+                                            <td class="text-end pe-4 align-middle">
+                                                <a href="{{ route('inventory.index', ['search' => $product->name]) }}" class="btn btn-sm btn-primary">
+                                                    Ver en Inventario
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+                            <h5 class="text-muted">¡Todo está en orden!</h5>
+                            <p class="text-muted mb-0">No hay productos con stock bajo en este momento.</p>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer" style="background-color: #f8f9fa;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a href="{{ route('inventory.index') }}" class="btn btn-primary">Ir al Inventario Completo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     @stack('scripts')
 </body>
 </html>

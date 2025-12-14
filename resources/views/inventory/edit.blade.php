@@ -122,8 +122,9 @@
                     {{-- Stock Actual --}}
                     <div style="display: flex; flex-direction: column;">
                         <label for="stock-actual" style="margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 0.9em;">Stock Actual (Existencias):</label>
-                        <input type="number" id="stock-actual" name="stock_initial" min="0" value="{{ old('stock_initial', $product->stock_initial) }}" required
-                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;">
+                        <input type="number" id="stock-actual" name="stock_initial" min="0" value="{{ old('stock_initial', $product->stock_initial) }}" readonly
+                            style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #e9ecef; cursor: not-allowed;">
+                        <small style="color: #6c757d; margin-top: 4px; font-size: 0.85em;">⚠️ El stock se actualiza automáticamente con compras, ventas y consumos</small>
                     </div>
                     
                     {{-- Stock Mínimo --}}
@@ -140,6 +141,7 @@
                             type="date" 
                             id="fecha-vencimiento" 
                             name="expiration_date" 
+                            min="{{ date('Y-m-d') }}"
                             value="{{ old('expiration_date', $product->expiration_date ? \Carbon\Carbon::parse($product->expiration_date)->format('Y-m-d') : '') }}"
                             style="padding: 10px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; background-color: #fff;"
                         >

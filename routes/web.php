@@ -80,6 +80,11 @@ Route::middleware(['auth'])->group(function () {
 
         // Rutas de Tasas de Cambio
         Route::resource('exchange_rates', ExchangeRatesController::class)->except(['show', 'create']);
+
+        // Rutas para consumos
+        Route::get('/consumption', [App\Http\Controllers\ConsumptionController::class, 'index'])->name('consumption.index');
+        Route::post('/consumption', [App\Http\Controllers\ConsumptionController::class, 'store'])->name('consumption.store');
+        Route::delete('/consumption/{id}', [App\Http\Controllers\ConsumptionController::class, 'destroy'])->name('consumption.destroy');
     });
 
     // ========================================

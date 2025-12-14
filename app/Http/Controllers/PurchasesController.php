@@ -34,7 +34,7 @@ class PurchasesController extends Controller
     {
         $validated = $request->validate([
             'id_suppliers' => 'required|exists:suppliers,id',
-            'purchase_date' => 'required|date',
+            'purchase_date' => 'required|date|before_or_equal:today',
             'invoice_number' => 'nullable|string|max:255|unique:purchases,invoice_number',
             'total_amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
@@ -69,9 +69,10 @@ class PurchasesController extends Controller
                     'line_total' => $lineTotal,
                 ]);
 
-                // Incrementar el stock del producto
+                // Incrementar el stock del producto y actualizar precio de compra
                 $product = Product::find($item['product_id']);
                 $product->stock_initial += $item['quantity'];
+                $product->price_buy = $item['unit_cost']; // Actualizar precio de compra
                 $product->save();
             }
 

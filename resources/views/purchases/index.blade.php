@@ -20,6 +20,22 @@
             <form id="form-compra" method="POST" action="{{ route('purchases.store') }}">
                 @csrf
                 
+                @if($errors->any())
+                    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 4px solid #dc3545;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px; border-left: 4px solid #dc3545;">
+                        {{ session('error') }}
+                    </div>
+                @endif
+                
                 <label for="proveedor">Proveedor:</label>
                 <select id="proveedor" name="id_suppliers" required>
                     <option value="">Seleccionar proveedor</option>
@@ -31,7 +47,7 @@
                 </select>
                 
                 <label for="fecha-compra">Fecha de Compra:</label>
-                <input type="date" id="fecha-compra" name="purchase_date" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                <input type="date" id="fecha-compra" name="purchase_date" value="{{ old('purchase_date', date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" required>
                 
                 <label for="numero-factura">Número de Factura:</label>
                 <input type="text" id="numero-factura" name="invoice_number" value="{{ old('invoice_number') }}" placeholder="Opcional" maxlength="255">
@@ -47,7 +63,7 @@
                     <!-- Los productos se agregarán aquí dinámicamente -->
                 </div>
                 
-                <button type="button" id="btn-agregar-producto" class="btn-listo" style="background-color: #3498db; margin-bottom: 10px;">
+                <button type="button" class="btn-listo" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto" style="background-color: #3498db; margin-bottom: 10px;">
                     + Agregar Producto
                 </button>
                 
@@ -105,38 +121,104 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let productoIndex = 0;
 const productosDisponibles = @json($products);
 
-document.getElementById('btn-agregar-producto').addEventListener('click', function() {
-    agregarProducto();
+document.querySelector('button[data-bs-target="#modalAgregarProducto"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Generar opciones para el select
+    let options = '<option value="">Seleccionar producto</option>';
+    productosDisponibles.forEach(p => {
+        options += `<option value="${p.id}">${p.name} (Stock: ${p.stock_initial})</option>`;
+    });
+
+    Swal.fire({
+        title: '➕ Agregar Producto',
+        html: `
+            <div style="text-align: left;">
+                <label style="display:block; margin-bottom:5px;">Producto</label>
+                <select id="swal-producto" class="swal2-input" style="display:block; width:100%; margin: 0 0 15px 0;">
+                    ${options}
+                </select>
+                
+                <label style="display:block; margin-bottom:5px;">Cantidad</label>
+                <input id="swal-cantidad" type="number" placeholder="Ej: 10" step="0.01" min="0.01" class="swal2-input" style="margin: 0 0 15px 0;">
+                
+                <label style="display:block; margin-bottom:5px;">Costo Unitario ($)</label>
+                <input id="swal-costo" type="number" placeholder="Ej: 5.50" step="0.01" min="0" class="swal2-input" style="margin: 0 0 15px 0;">
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Agregar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#3498db',
+        focusConfirm: false,
+        preConfirm: () => {
+            const productoId = document.getElementById('swal-producto').value;
+            const cantidad = document.getElementById('swal-cantidad').value;
+            const costo = document.getElementById('swal-costo').value;
+
+            if (!productoId || !cantidad || !costo) {
+                Swal.showValidationMessage('Por favor completa todos los campos');
+                return false;
+            }
+            
+            return { productoId, cantidad, costo };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { productoId, cantidad, costo } = result.value;
+            const producto = productosDisponibles.find(p => p.id == productoId);
+            agregarProducto(productoId, producto.name, cantidad, costo);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Producto agregado',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
 });
 
-function agregarProducto() {
+function agregarProducto(productoId = null, productoNombre = '', cantidad = '', costo = '') {
     const container = document.getElementById('productos-compra');
     const div = document.createElement('div');
     div.className = 'producto-item';
     div.style.cssText = 'margin-bottom: 10px; padding: 10px; background-color: #ecf0f1; border-radius: 5px;';
     div.dataset.index = productoIndex;
     
+    const nombreProducto = productoNombre || 'Producto';
+    
     div.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <strong style="color: #2c3e50;">Producto ${productoIndex + 1}</strong>
+            <strong style="color: #2c3e50;">${nombreProducto}</strong>
             <button type="button" onclick="eliminarProducto(${productoIndex})" style="background-color: #e74c3c; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer;">✗</button>
         </div>
-        <select name="items[${productoIndex}][product_id]" required style="width: 100%; margin-bottom: 5px; padding: 5px; color: #333;">
-            <option value="">Seleccionar producto</option>
-            ${productosDisponibles.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock_initial})</option>`).join('')}
-        </select>
+        <input type="hidden" name="items[${productoIndex}][product_id]" value="${productoId}">
         <div style="display: flex; gap: 5px;">
-            <input type="number" name="items[${productoIndex}][quantity]" placeholder="Cantidad" step="0.01" min="0.01" required style="flex: 1; padding: 5px; color: #333;" onchange="calcularTotal()">
-            <input type="number" name="items[${productoIndex}][unit_cost]" placeholder="Costo Unit." step="0.01" min="0" required style="flex: 1; padding: 5px; color: #333;" onchange="calcularTotal()">
+            <div style="flex: 1;">
+                <label style="font-size: 0.85em; color: #555;">Cantidad:</label>
+                <input type="number" name="items[${productoIndex}][quantity]" value="${cantidad}" step="0.01" min="0.01" required style="width: 100%; padding: 5px; color: #333;" onchange="calcularTotal()" readonly>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 0.85em; color: #555;">Costo Unit.:</label>
+                <input type="number" name="items[${productoIndex}][unit_cost]" value="${costo}" step="0.01" min="0" required style="width: 100%; padding: 5px; color: #333;" onchange="calcularTotal()" readonly>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 0.85em; color: #555;">Subtotal:</label>
+                <input type="text" value="$${(cantidad * costo).toFixed(2)}" style="width: 100%; padding: 5px; background-color: #d5dbdb; color: #333;" readonly>
+            </div>
         </div>
     `;
     
     container.appendChild(div);
     productoIndex++;
+    calcularTotal();
 }
 
 function eliminarProducto(index) {
@@ -160,9 +242,6 @@ function calcularTotal() {
     document.getElementById('total-compra').textContent = '$' + total.toFixed(2);
     document.getElementById('total-amount').value = total.toFixed(2);
 }
-
-// Agregar un producto por defecto
-agregarProducto();
 </script>
 @endpush
 @endsection
