@@ -197,8 +197,13 @@
                 document.addEventListener('click', function(e) {
                     if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
                         notificationDropdown.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
     <!-- Modal de Notificaciones -->
-    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">

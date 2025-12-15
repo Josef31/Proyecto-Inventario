@@ -174,4 +174,74 @@ class InventoryController extends Controller
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
+    public function getHistory($id)
+    {
+        try {
+            $product = Product::with([
+                'purchaseItems.purchase.supplier', // Asumiendo relaciones nested
+                'saleItems.sale.customer',
+                'consumptions.user'
+            ])->findOrFail($id);
+
+            $movements = collect();
+
+            // 1. Compras (Entradas)
+            foreach ($product->purchaseItems as $item) {
+                if ($item->purchase) {
+                    $movements->push([
+                        'date' => $item->purchase->purchase_date, // Asumiendo campo fecha
+                        'type' => 'Compra',
+                        'quantity' => $item->quantity,
+                        'price' => $item->unit_cost,
+                        'total' => $item->line_total,
+                        'reference' => 'Factura: ' . ($item->purchase->invoice_number ?? 'N/A'),
+                        'detail' => $item->purchase->supplier ? $item->purchase->supplier->name : 'Proveedor General',
+                        'user' => $item->purchase->user_id // Podrías cargar el usuario también
+                    ]);
+                }
+            }
+
+            // 2. Ventas (Salidas)
+            foreach ($product->saleItems as $item) {
+                if ($item->sale) {
+                    $movements->push([
+                        'date' => $item->sale->created_at->format('Y-m-d'), // Asumiendo timestamp
+                        'type' => 'Venta',
+                        'quantity' => $item->quantity * -1, // Negativo para salida
+                        'price' => $item->price,
+                        'total' => $item->price * $item->quantity,
+                        'reference' => 'Ticket: ' . $item->sale->sale_code,
+                        'detail' => $item->sale->customer ? $item->sale->customer->name : 'Cliente General',
+                        'user' => $item->sale->user_id
+                    ]);
+                }
+            }
+
+            // 3. Consumos (Salidas)
+            foreach ($product->consumptions as $consumption) {
+                $movements->push([
+                    'date' => \Carbon\Carbon::parse($consumption->consumption_date)->format('Y-m-d'),
+                    'type' => 'Consumo',
+                    'quantity' => $consumption->quantity * -1, // Negativo para salida
+                    'price' => 0, // Consumo interno no suele tener precio de venta
+                    'total' => 0,
+                    'reference' => 'Interno',
+                    'detail' => $consumption->reason . ($consumption->notes ? ' (' . $consumption->notes . ')' : ''),
+                    'user' => $consumption->user ? $consumption->user->name : 'N/A'
+                ]);
+            }
+
+            // Ordenar por fecha descendente
+            $sortedMovements = $movements->sortByDesc('date')->values();
+
+            return response()->json([
+                'success' => true,
+                'product' => $product->name,
+                'movements' => $sortedMovements
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al obtener historial: ' . $e->getMessage()], 500);
+        }
+    }
 }

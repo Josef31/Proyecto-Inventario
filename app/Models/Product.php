@@ -153,4 +153,27 @@ class Product extends Model
     {
         return $this->stock_initial;
     }
+    /**
+     * Relación: Un producto puede estar en muchos items de compra
+     */
+    public function purchaseItems()
+    {
+        return $this->hasMany(PurchaseItem::class, 'product_id');
+    }
+
+    /**
+     * Relación: Un producto puede estar en muchos items de venta
+     */
+    public function saleItems()
+    {
+        return $this->hasMany(SaleItem::class, 'product_id');
+    }
+
+    /**
+     * Relación: Un producto puede tener muchos consumptions
+     */
+    public function consumptions()
+    {
+        return $this->hasMany(Consumption::class, 'product_id');
+    }
 }

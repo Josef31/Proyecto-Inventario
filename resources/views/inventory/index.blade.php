@@ -101,8 +101,8 @@
                         <td><span class="{{ $vencimientoClass }}">{{ $fechaTexto }}</span></td>
                         <td>${{ number_format($product->price_sell, 2) }}</td>
                         <td class="acciones">
-                            {{-- 🚨 Botón Detalles: Placeholder (sin acción de edición) --}}
-                            <button class="btn-detalles" onclick="alert('Mostrando detalles de {{ $product->name }}.')">Detalles</button> 
+                            {{-- 🚨 Botón Detalles: Evento delegado JS --}}
+                            <button type="button" class="btn-detalles btn-ver-historial" data-id="{{ $product->id }}">Detalles</button> 
                             
                             {{-- 🚨 Botón Editar: Dirige a la edición individual --}}
                             <a href="{{ route('inventory.edit', $product->id) }}" class="btn-editar" style="background-color: #039438; color: white; padding: 5px 10px; border-radius: 3px; margin-right: 5px; text-decoration: none;">Editar</a>
@@ -324,6 +324,148 @@
                 confirmButtonColor: '#e74c3c'
             });
         });
+    }
+
+    // ========================================
+    // HISTORIAL DE MOVIMIENTOS
+    // ========================================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ JS Inventario cargado correctamente');
+        
+        // Event Delegation para el botón de historial
+        document.body.addEventListener('click', function(e) {
+            // Buscar el botón clickeado (o su padre si se clickeó un icono interno)
+            const btn = e.target.closest('.btn-ver-historial');
+            
+            if (btn) {
+                console.log('🖱️ Click detectado en botón historial');
+                const id = btn.getAttribute('data-id');
+                if (id) {
+                    verHistorial(id);
+                } else {
+                    console.error('❌ Error: El botón no tiene ID');
+                }
+            }
+        });
+    });
+
+    function verHistorial(id) {
+        console.log('📖 Cargando historial para ID:', id);
+        
+        if (typeof Swal === 'undefined') {
+            alert('Error: SweetAlert2 no está cargado. Recarga la página.');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Cargando historial...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Fetch data
+        fetch(`{{ url('/inventory') }}/${id}/history`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || 'Error desconocido');
+                }
+
+                // Build HTML Table
+                let html = `
+                    <div style="text-align: left;">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                            ${data.product} <span style="font-size: 0.6em; color: #7f8c8d;">(Historial de Movimientos)</span>
+                        </h4>
+                        
+                        <div style="max-height: 400px; overflow-y: auto; overflow-x: hidden; border: 1px solid #eee; border-radius: 4px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px;">
+                                <thead style="position: sticky; top: 0; z-index: 1;">
+                                    <tr style="background-color: #34495e; color: white; text-align: left;">
+                                        <th style="padding: 10px; border-radius: 0;">Fecha</th>
+                                        <th style="padding: 10px;">Tipo</th>
+                                        <th style="padding: 10px; text-align: center;">Cant.</th>
+                                        <th style="padding: 10px; text-align: right;">Total</th>
+                                        <th style="padding: 10px; border-radius: 0;">Detalle / Referencia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                if (data.movements.length === 0) {
+                    html += `
+                        <tr>
+                            <td colspan="5" style="padding: 20px; text-align: center; color: #7f8c8d; background-color: #f9f9f9;">
+                                <i>No hay movimientos registrados para este producto.</i>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    data.movements.forEach(mov => {
+                        let badgeColor, signo, typeClass;
+                        
+                        if (mov.type === 'Compra') {
+                            badgeColor = '#3498db'; // Azul
+                            signo = '+';
+                        } else if (mov.type === 'Venta') {
+                            badgeColor = '#27ae60'; // Verde
+                            signo = '-';
+                        } else {
+                            badgeColor = '#e67e22'; // Naranja
+                            signo = '-';
+                        }
+                        
+                        // Format money (handling varied inputs safely)
+                        const totalVal = parseFloat(mov.total) || 0;
+                        const totalFormatted = '$' + totalVal.toFixed(2);
+
+                        html += `
+                            <tr style="border-bottom: 1px solid #ecf0f1;">
+                                <td style="padding: 10px;">${mov.date}</td>
+                                <td style="padding: 10px;">
+                                    <span style="background-color: ${badgeColor}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">
+                                        ${mov.type.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td style="padding: 10px; text-align: center; font-weight: bold; color: ${signo === '+' ? '#27ae60' : '#c0392b'};">
+                                    ${signo}${Math.abs(mov.quantity)}
+                                </td>
+                                <td style="padding: 10px; text-align: right;">${totalFormatted}</td>
+                                <td style="padding: 10px; color: #555;">
+                                    <strong>${mov.reference}</strong><br>
+                                    <small>${mov.detail}</small>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                Swal.fire({
+                    html: html,
+                    width: '800px', // Wider modal
+                    showConfirmButton: true,
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#95a5a6'
+                });
+            })
+            .catch(error => {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar el historial: ' + error.message,
+                    confirmButtonColor: '#e74c3c'
+                });
+            });
     }
     
     // ========================================
