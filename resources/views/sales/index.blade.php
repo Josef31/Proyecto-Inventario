@@ -477,52 +477,47 @@ const TPV = {
         this.calcularCambio();
     },
     
-    // 4. CALCULAR CAMBIO
+    // 4. CALCULAR CAMBIO (Validación de Venta)
     calcularCambio: function() {
-        // Obtener total numérico limpio (sin símbolo de moneda)
-        const totalTexto = document.getElementById('total-tpv').textContent;
+        const totalElement = document.getElementById('total-tpv');
+        const totalFullText = totalElement.textContent || totalElement.innerText;
         const symbol = this.getCurrencySymbol(this.currentCurrency);
-        const total = parseFloat(totalTexto.replace(symbol, '')) || 0;
+        const totalTexto = totalFullText.replace(/[$Bs]/g, '').trim();
+        const totalVenta = parseFloat(totalTexto) || 0;
         
-        const montoRecibido = parseFloat(document.getElementById('monto-tpv').value) || 0;
-        const metodoPago = document.getElementById('pago-metodo-tpv').value;
+        // Detectar si el total está en Bs
+        const totalEnBs = totalFullText.indexOf('Bs') !== -1;
+        
+        // Calcular total ya pagado (acumulado)
+        const totalPagadoUSD = this.pagos.reduce((sum, pago) => {
+            if (pago.currency === 'USD') return sum + pago.amount;
+            return sum + (pago.amount / this.exchangeRate);
+        }, 0);
+        
+        // Convertir total pagado a moneda de venta para comparar
+        const totalPagadoEnMonedaVenta = totalEnBs ? (totalPagadoUSD * this.exchangeRate) : totalPagadoUSD;
+        
+        // Margen de error pequeño por decimales (0.01)
+        const margen = 0.01;
+        const cubierto = totalPagadoEnMonedaVenta >= (totalVenta - margen);
+        
+        console.log('💰 TPV Validación:', { 
+            totalVenta, 
+            pagado: totalPagadoEnMonedaVenta, 
+            cubierto,
+            pagosCount: this.pagos.length
+        });
+        
         const btnCobrar = document.getElementById('btn-cobrar-tpv');
         
-        console.log('💰 TPV Calculando cambio - Total:', total, 'Monto:', montoRecibido);
-        
-        let cambio = 0;
-        let valido = false;
-        
-        // ID 1 = Dólares, ID 2 = Bolívares (Efectivo)
-        // Asumimos que métodos de efectivo requieren cálculo de cambio
-        const metodoPagoId = parseInt(metodoPago);
-        
-        // Lógica simplificada: si hay monto recibido, calcular cambio
-        if (montoRecibido > 0) {
-            if (montoRecibido >= total) {
-                cambio = montoRecibido - total;
-                valido = true;
-            }
-        } else {
-            // Si no hay monto recibido, asumimos pago exacto para métodos no-efectivo
-            // O requerimos monto para efectivo
-            // Por ahora mantenemos lógica simple: si no es efectivo, es válido
-            if (metodoPagoId !== 1 && metodoPagoId !== 2) {
-                valido = true;
-            }
-        }
-        
-        // Mostrar cambio con el símbolo correcto (siempre en la misma moneda del pago)
-        document.getElementById('cambio-tpv').textContent = `${symbol}${cambio.toFixed(2)}`;
-        
-        // Habilitar/deshabilitar botón cobrar
-        if (valido && this.carrito.length > 0) {
+        // Habilitar si está cubierto Y hay items en carrito Y hay pagos
+        if (cubierto && this.carrito.length > 0 && this.pagos.length > 0) {
             btnCobrar.disabled = false;
-            btnCobrar.style.backgroundColor = '#28a745';
+            btnCobrar.style.backgroundColor = '#2ecc71'; // Green
             console.log('✅ TPV: Botón cobrar HABILITADO');
         } else {
             btnCobrar.disabled = true;
-            btnCobrar.style.backgroundColor = '#cccccc';
+            btnCobrar.style.backgroundColor = '#cccccc'; // Grey
             console.log('❌ TPV: Botón cobrar DESHABILITADO');
         }
     },
@@ -661,6 +656,8 @@ const TPV = {
             document.getElementById('total-pagado-tpv').textContent = '$0.00';
             document.getElementById('falta-pagar-container').style.display = 'none';
             document.getElementById('cambio-container').style.display = 'none';
+            // Validar estado del botón
+            this.calcularCambio();
             return;
         }
         
@@ -711,7 +708,10 @@ const TPV = {
         
         document.getElementById('total-pagado-tpv').textContent = '$' + totalPagadoUSD.toFixed(2);
         
-        if (totalPagadoEnMonedaVenta < totalVenta) {
+        // Margen de error pequeño por decimales
+        const margen = 0.01;
+        
+        if (totalPagadoEnMonedaVenta < (totalVenta - margen)) {
             const falta = totalVenta - totalPagadoEnMonedaVenta;
             // Convertir falta a ambas monedas
             const faltaUSD = totalEnBs ? (falta / this.exchangeRate) : falta;
@@ -721,16 +721,20 @@ const TPV = {
             document.getElementById('falta-pagar-bs-tpv').textContent = 'Bs' + faltaBs.toFixed(2);
             document.getElementById('falta-pagar-container').style.display = 'flex';
             document.getElementById('cambio-container').style.display = 'none';
-        } else if (totalPagadoEnMonedaVenta > totalVenta) {
+        } else if (totalPagadoEnMonedaVenta > (totalVenta + margen)) {
             const cambio = totalPagadoEnMonedaVenta - totalVenta;
             const cambioUSD = totalEnBs ? (cambio / this.exchangeRate) : cambio;
             document.getElementById('cambio-tpv').textContent = '$' + cambioUSD.toFixed(2);
             document.getElementById('cambio-container').style.display = 'flex';
             document.getElementById('falta-pagar-container').style.display = 'none';
         } else {
+            // Pago exacto
             document.getElementById('falta-pagar-container').style.display = 'none';
             document.getElementById('cambio-container').style.display = 'none';
         }
+        
+        // Validar si se habilita el botón de cobro
+        this.calcularCambio();
     },
     
     // 6. PROCESAR VENTA
