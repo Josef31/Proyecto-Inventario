@@ -29,6 +29,8 @@ class MigrateInOrder extends Command
             'sales',
             'sale_items',
             'sale_services',
+            'sale_payments',
+            'consumptions',
         ];
 
         $basePath = database_path('migrations') . DIRECTORY_SEPARATOR;
