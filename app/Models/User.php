@@ -71,9 +71,9 @@ class User extends Authenticatable
             return $module !== 'users';
         }
 
-        // Cajero solo puede acceder a ventas y compras (NO dashboard)
+        // Cajero puede acceder a ventas, compras y caja (NO dashboard)
         if ($roleId === 3) {
-            return in_array($module, ['sales', 'purchases']);
+            return in_array($module, ['sales', 'purchases', 'cash']);
         }
 
         return false;

@@ -33,6 +33,7 @@ return new class extends Migration
             $table->foreign('cash_register_id')->references('id')->on('cash_registers');
             $table->foreign('customer_id')->references('id')->on('customers');
             $table->foreign('payment_method_id')->references('id')->on('payment_method');
+            
         });
 
         // Restricción CHECK para PostgreSQL

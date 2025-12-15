@@ -35,6 +35,13 @@ Route::middleware(['auth'])->group(function () {
         // Rutas para compras
         Route::resource('purchases', PurchasesController::class)->except(['create', 'edit', 'update']);
         Route::get('/purchases/search', [PurchasesController::class, 'searchProducts'])->name('purchases.search');
+
+        // Rutas para caja
+        Route::get('/cash', [CashController::class, 'index'])->name('cash.index');
+        Route::post('/cash/open', [CashController::class, 'openCashRegister'])->name('cash.open');
+        Route::post('/cash/close', [CashController::class, 'closeCashRegister'])->name('cash.close');
+        Route::get('/cash/registers', [CashController::class, 'getCashRegisters'])->name('cash.registers');
+        Route::get('/cash/today-sales', [CashController::class, 'getTodayCashSales'])->name('cash.today-sales');
     });
 
     // ========================================
@@ -64,13 +71,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/services/{id}', [ServicesController::class, 'update'])->name('services.update');
         Route::delete('/services/{id}', [ServicesController::class, 'destroy'])->name('services.destroy');
         Route::get('/services/get', [ServicesController::class, 'getServices'])->name('services.get');
-
-        // Rutas para caja
-        Route::get('/cash', [CashController::class, 'index'])->name('cash.index');
-        Route::post('/cash/open', [CashController::class, 'openCashRegister'])->name('cash.open');
-        Route::post('/cash/close', [CashController::class, 'closeCashRegister'])->name('cash.close');
-        Route::get('/cash/registers', [CashController::class, 'getCashRegisters'])->name('cash.registers');
-        Route::get('/cash/today-sales', [CashController::class, 'getTodayCashSales'])->name('cash.today-sales');
 
         // Rutas para facturas
         Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
